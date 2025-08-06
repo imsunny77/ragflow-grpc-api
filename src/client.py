@@ -1,11 +1,16 @@
 """Async gRPC client for RAGFlow."""
 import asyncio
 import logging
+import os
+import sys
 from typing import Optional
 
-import grpc
+# Add src to path for imports
+sys.path.append(os.path.join(os.path.dirname(__file__)))
 
-from src import ragflow_pb2, ragflow_pb2_grpc
+import grpc
+import ragflow_pb2
+import ragflow_pb2_grpc
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -61,7 +66,6 @@ class RagFlowGRPCClient:
         return response
 
 
-# Synchronous wrapper functions
 class RagFlowSyncClient:
     """Synchronous wrapper for gRPC client."""
     

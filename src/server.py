@@ -2,14 +2,19 @@
 import asyncio
 import logging
 import os
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
+
+
+sys.path.append(os.path.join(os.path.dirname(__file__)))
 
 import grpc
 from dotenv import load_dotenv
 
-from src import ragflow_pb2, ragflow_pb2_grpc
-from src.ragflow_api import RAGFlowClient, RAGFlowConfig
+import ragflow_pb2
+import ragflow_pb2_grpc
+from ragflow_api import RAGFlowClient, RAGFlowConfig
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -22,7 +27,7 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
     def __init__(self) -> None:
         config = RAGFlowConfig(
             base_url=os.getenv("RAGFLOW_BASE_URL", "http://localhost:9380"),
-            api_token=os.getenv("RAGFLOW_API_TOKEN", "")
+            api_token=os.getenv("RAGFLOW_API_TOKEN", "demo_token")
         )
         self.ragflow_client = RAGFlowClient(config)
     
