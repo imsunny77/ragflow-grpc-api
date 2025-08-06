@@ -281,3 +281,10 @@ uv run pytest tests/ --cov=src
 ✅ Production-ready code with type hints  
 ✅ Complete documentation and examples  
 
+## 🌐 Web UI Testing
+
+For visual testing of the gRPC API:
+
+1. **Start gRPC server:**
+```bash
+uv run python -m src.server
