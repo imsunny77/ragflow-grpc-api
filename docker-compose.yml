@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # Minimal RAGFlow setup (simplified)
+  ragflow:
+    image: infiniflow/ragflow:v0.7.0
+    container_name: ragflow-server
+    ports:
+      - "9380:9380"
+    environment:
+      - MYSQL_PASSWORD=infiniflow
+      - MYSQL_USER=root
+    volumes:
+      - ragflow_data:/ragflow
+    restart: unless-stopped
+
+  # Our gRPC server
+  grpc-server:
+    build: .
+    container_name: ragflow-grpc-server
+    ports:
+      - "50051:50051"
+    environment:
+      - RAGFLOW_BASE_URL=http://ragflow:9380
+      - RAGFLOW_API_TOKEN=${RAGFLOW_API_TOKEN:ragflow-EzMDhhMWIyNzI5YTExZjA5ZTUwNDIwMT}
+    depends_on:
+      - ragflow
+    restart: unless-stopped
+
+  # Test runner
+  pytest-runner:
+    build: .
+    container_name: ragflow-pytest
+    command: ["uv", "run", "pytest", "tests/", "-v"]
+    environment:
+      - RAGFLOW_BASE_URL=http://ragflow:9380
+      - RAGFLOW_API_TOKEN=${RAGFLOW_API_TOKEN:ragflow-EzMDhhMWIyNzI5YTExZjA5ZTUwNDIwMT}
+    depends_on:
+      - grpc-server
+    profiles:
+      - test
+
+volumes:
+  ragflow_data:
