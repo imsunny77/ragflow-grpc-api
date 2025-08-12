@@ -1,10 +1,12 @@
 # Fix for server.py - rename methods to lowercase as per ruff N802
 import asyncio
+
 import grpc
 from grpc import aio
-from src.ragflow_api import RAGFlowClient, RAGFlowConfig
+
 import ragflow_pb2
 import ragflow_pb2_grpc
+from src.ragflow_api import RAGFlowClient, RAGFlowConfig
 
 
 class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
