@@ -1,20 +1,19 @@
 """Tests for gRPC server with Dataset CRUD functionality."""
 
-import os
-import sys
-from unittest.mock import AsyncMock, patch
-
 import pytest
+from unittest.mock import AsyncMock, patch
+import sys
+import os
 
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
-import ragflow_pb2
 from server import RagServicesServicer
+import ragflow_pb2
 
 
 class TestRagServicesServicer:
-    """Test cases for RagServicesServicer."""
+    """Test cases for RagServicesServicer - Dataset Operations."""
 
     @pytest.fixture
     def servicer(self):
