@@ -9,6 +9,7 @@ message StatusResponse {
   optional string data = 3;
 }
 
+// Dataset/Knowledge Base messages
 message CreateKnowledgeBaseRequest {
   string name = 1;
   optional string description = 2;
@@ -20,12 +21,56 @@ message CreateKnowledgeBaseResponse {
   optional string kb_id = 3;
 }
 
+message ListDatasetsRequest {
+  optional int32 page = 1;
+  optional int32 page_size = 2;
+  optional string orderby = 3;
+  optional bool desc = 4;
+  optional string name = 5;
+  optional string id = 6;
+}
+
+message Dataset {
+  string id = 1;
+  string name = 2;
+  optional string description = 3;
+  optional string avatar = 4;
+  string embedding_model = 5;
+  string permission = 6;
+  string chunk_method = 7;
+  int32 chunk_count = 8;
+  int32 document_count = 9;
+  string create_date = 10;
+  string update_date = 11;
+}
+
+message ListDatasetsResponse {
+  bool status = 1;
+  string message = 2;
+  repeated Dataset datasets = 3;
+}
+
+message UpdateDatasetRequest {
+  string dataset_id = 1;
+  optional string name = 2;
+  optional string description = 3;
+  optional string embedding_model = 4;
+  optional string permission = 5;
+  optional string chunk_method = 6;
+}
+
+message DeleteDatasetsRequest {
+  repeated string ids = 1; // if empty, deletes all datasets
+}
+
+// Document messages
 message UploadDocumentRequest {
   string kb_id = 1;
   bytes file_data = 2;
   string filename = 3;
 }
 
+// Chat messages
 message ChatRequest {
   string kb_id = 1;
   string question = 2;
@@ -39,7 +84,15 @@ message ChatResponse {
 
 // gRPC Service Definition
 service RagServices {
+  // Dataset Management
   rpc CreateKnowledgeBase(CreateKnowledgeBaseRequest) returns (CreateKnowledgeBaseResponse);
+  rpc ListDatasets(ListDatasetsRequest) returns (ListDatasetsResponse);
+  rpc UpdateDataset(UpdateDatasetRequest) returns (StatusResponse);
+  rpc DeleteDatasets(DeleteDatasetsRequest) returns (StatusResponse);
+  
+  // Document Management
   rpc UploadDocument(UploadDocumentRequest) returns (StatusResponse);
+  
+  // Chat
   rpc Chat(ChatRequest) returns (ChatResponse);
 }
