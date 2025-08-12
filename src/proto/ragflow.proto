@@ -210,6 +210,121 @@ message DeleteChatAssistantsRequest {
   repeated string ids = 1; // if empty, deletes all chat assistants
 }
 
+// Session Management messages
+message ChatMessage {
+  string role = 1; // "user" or "assistant"
+  string content = 2;
+}
+
+message Session {
+  string id = 1;
+  string chat_id = 2;
+  string name = 3;
+  optional string user_id = 4;
+  repeated ChatMessage messages = 5;
+  string create_date = 6;
+  string update_date = 7;
+}
+
+message CreateSessionRequest {
+  string chat_id = 1;
+  string name = 2;
+  optional string user_id = 3;
+}
+
+message CreateSessionResponse {
+  bool status = 1;
+  string message = 2;
+  optional string session_id = 3;
+}
+
+message ListSessionsRequest {
+  string chat_id = 1;
+  optional int32 page = 2;
+  optional int32 page_size = 3;
+  optional string orderby = 4;
+  optional bool desc = 5;
+  optional string name = 6;
+  optional string id = 7;
+  optional string user_id = 8;
+}
+
+message ListSessionsResponse {
+  bool status = 1;
+  string message = 2;
+  repeated Session sessions = 3;
+}
+
+message UpdateSessionRequest {
+  string chat_id = 1;
+  string session_id = 2;
+  optional string name = 3;
+  optional string user_id = 4;
+}
+
+message DeleteSessionsRequest {
+  string chat_id = 1;
+  repeated string ids = 2; // if empty, deletes all sessions for the chat assistant
+}
+
+// Chunk Management messages
+message Chunk {
+  string id = 1;
+  string document_id = 2;
+  string dataset_id = 3;
+  string content = 4;
+  optional string metadata = 5; // JSON string
+  int32 position = 6;
+  float similarity_score = 7;
+  string create_date = 8;
+  string update_date = 9;
+}
+
+message CreateChunkRequest {
+  string dataset_id = 1;
+  string document_id = 2;
+  string content = 3;
+  optional string metadata = 4; // JSON string
+  optional int32 position = 5;
+}
+
+message CreateChunkResponse {
+  bool status = 1;
+  string message = 2;
+  optional string chunk_id = 3;
+}
+
+message ListChunksRequest {
+  string dataset_id = 1;
+  optional string document_id = 2;
+  optional int32 page = 3;
+  optional int32 page_size = 4;
+  optional string orderby = 5;
+  optional bool desc = 6;
+  optional string keywords = 7;
+  optional string id = 8;
+}
+
+message ListChunksResponse {
+  bool status = 1;
+  string message = 2;
+  repeated Chunk chunks = 3;
+  optional int32 total = 4;
+}
+
+message UpdateChunkRequest {
+  string dataset_id = 1;
+  string chunk_id = 2;
+  optional string content = 3;
+  optional string metadata = 4; // JSON string
+  optional int32 position = 5;
+}
+
+message DeleteChunksRequest {
+  string dataset_id = 1;
+  repeated string ids = 2; // if empty, deletes all chunks in dataset
+}
+
 // Chat messages
 message ChatRequest {
   string kb_id = 1;
@@ -243,6 +358,18 @@ service RagServices {
   rpc ListChatAssistants(ListChatAssistantsRequest) returns (ListChatAssistantsResponse);
   rpc UpdateChatAssistant(UpdateChatAssistantRequest) returns (StatusResponse);
   rpc DeleteChatAssistants(DeleteChatAssistantsRequest) returns (StatusResponse);
+  
+  // Session Management
+  rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse);
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
+  rpc UpdateSession(UpdateSessionRequest) returns (StatusResponse);
+  rpc DeleteSessions(DeleteSessionsRequest) returns (StatusResponse);
+  
+  // Chunk Management
+  rpc CreateChunk(CreateChunkRequest) returns (CreateChunkResponse);
+  rpc ListChunks(ListChunksRequest) returns (ListChunksResponse);
+  rpc UpdateChunk(UpdateChunkRequest) returns (StatusResponse);
+  rpc DeleteChunks(DeleteChunksRequest) returns (StatusResponse);
   
   // Chat
   rpc Chat(ChatRequest) returns (ChatResponse);

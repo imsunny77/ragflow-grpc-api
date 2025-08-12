@@ -560,6 +560,272 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
             logger.error(f"Error deleting chat assistants: {e}")
             return ragflow_pb2.StatusResponse(status=False, message=str(e))
 
+    # Session Management Methods
+    async def CreateSession(
+        self,
+        request: ragflow_pb2.CreateSessionRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.CreateSessionResponse:
+        """Create chat session."""
+        try:
+            result = await self.ragflow_client.create_session(
+                request.chat_id, request.name, request.user_id or None
+            )
+            session_id = ""
+            if result["status"] and result.get("data"):
+                session_id = result["data"].get("data", {}).get("id", "") or result[
+                    "data"
+                ].get("id", "")
+
+            return ragflow_pb2.CreateSessionResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+                session_id=session_id,
+            )
+        except Exception as e:
+            logger.error(f"Error creating session: {e}")
+            return ragflow_pb2.CreateSessionResponse(status=False, message=str(e))
+
+    async def ListSessions(
+        self,
+        request: ragflow_pb2.ListSessionsRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.ListSessionsResponse:
+        """List chat sessions."""
+        try:
+            result = await self.ragflow_client.list_sessions(
+                chat_id=request.chat_id,
+                page=request.page or 1,
+                page_size=request.page_size or 30,
+                orderby=request.orderby or "create_time",
+                desc=request.desc if request.HasField("desc") else True,
+                name=request.name or None,
+                session_id=request.id or None,
+                user_id=request.user_id or None,
+            )
+
+            sessions = []
+            if result["status"] and result.get("data"):
+                for session_data in result["data"]:
+                    messages = []
+                    for msg in session_data.get("messages", []):
+                        message = ragflow_pb2.ChatMessage(
+                            role=msg.get("role", ""),
+                            content=msg.get("content", ""),
+                        )
+                        messages.append(message)
+
+                    session = ragflow_pb2.Session(
+                        id=session_data.get("id", ""),
+                        chat_id=session_data.get("chat_id", ""),
+                        name=session_data.get("name", ""),
+                        user_id=session_data.get("user_id") or "",
+                        messages=messages,
+                        create_date=session_data.get("create_date", ""),
+                        update_date=session_data.get("update_date", ""),
+                    )
+                    sessions.append(session)
+
+            return ragflow_pb2.ListSessionsResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+                sessions=sessions,
+            )
+        except Exception as e:
+            logger.error(f"Error listing sessions: {e}")
+            return ragflow_pb2.ListSessionsResponse(
+                status=False, message=str(e), sessions=[]
+            )
+
+    async def UpdateSession(
+        self,
+        request: ragflow_pb2.UpdateSessionRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.StatusResponse:
+        """Update session configuration."""
+        try:
+            update_data = {}
+            if request.name:
+                update_data["name"] = request.name
+            if request.user_id:
+                update_data["user_id"] = request.user_id
+
+            result = await self.ragflow_client.update_session(
+                request.chat_id, request.session_id, update_data
+            )
+
+            return ragflow_pb2.StatusResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+            )
+        except Exception as e:
+            logger.error(f"Error updating session: {e}")
+            return ragflow_pb2.StatusResponse(status=False, message=str(e))
+
+    async def DeleteSessions(
+        self,
+        request: ragflow_pb2.DeleteSessionsRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.StatusResponse:
+        """Delete chat sessions."""
+        try:
+            session_ids = list(request.ids) if request.ids else []
+            result = await self.ragflow_client.delete_sessions(
+                request.chat_id, session_ids
+            )
+
+            return ragflow_pb2.StatusResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+            )
+        except Exception as e:
+            logger.error(f"Error deleting sessions: {e}")
+            return ragflow_pb2.StatusResponse(status=False, message=str(e))
+
+    # Chunk Management Methods
+    async def CreateChunk(
+        self,
+        request: ragflow_pb2.CreateChunkRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.CreateChunkResponse:
+        """Create document chunk."""
+        try:
+            result = await self.ragflow_client.create_chunk(
+                dataset_id=request.dataset_id,
+                document_id=request.document_id,
+                content=request.content,
+                metadata=request.metadata or None,
+                position=request.position if request.HasField("position") else None,
+            )
+            chunk_id = ""
+            if result["status"] and result.get("data"):
+                chunk_id = result["data"].get("data", {}).get("id", "") or result[
+                    "data"
+                ].get("id", "")
+
+            return ragflow_pb2.CreateChunkResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+                chunk_id=chunk_id,
+            )
+        except Exception as e:
+            logger.error(f"Error creating chunk: {e}")
+            return ragflow_pb2.CreateChunkResponse(status=False, message=str(e))
+
+    async def ListChunks(
+        self,
+        request: ragflow_pb2.ListChunksRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.ListChunksResponse:
+        """List document chunks."""
+        try:
+            result = await self.ragflow_client.list_chunks(
+                dataset_id=request.dataset_id,
+                document_id=request.document_id or None,
+                page=request.page or 1,
+                page_size=request.page_size or 30,
+                orderby=request.orderby or "create_time",
+                desc=request.desc if request.HasField("desc") else True,
+                keywords=request.keywords or None,
+                chunk_id=request.id or None,
+            )
+
+            chunks = []
+            total = 0
+            if result["status"] and result.get("data"):
+                chunk_data = result["data"]
+                total = chunk_data.get("total", 0)
+                chunks_list = chunk_data.get("chunks", [])
+
+                for chunk_info in chunks_list:
+                    chunk = ragflow_pb2.Chunk(
+                        id=chunk_info.get("id", ""),
+                        document_id=chunk_info.get("document_id", ""),
+                        dataset_id=chunk_info.get("dataset_id", ""),
+                        content=chunk_info.get("content", ""),
+                        metadata=chunk_info.get("metadata") or "",
+                        position=chunk_info.get("position", 0),
+                        similarity_score=chunk_info.get("similarity_score", 0.0),
+                        create_date=chunk_info.get("create_date", ""),
+                        update_date=chunk_info.get("update_date", ""),
+                    )
+                    chunks.append(chunk)
+
+            return ragflow_pb2.ListChunksResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+                chunks=chunks,
+                total=total,
+            )
+        except Exception as e:
+            logger.error(f"Error listing chunks: {e}")
+            return ragflow_pb2.ListChunksResponse(
+                status=False, message=str(e), chunks=[], total=0
+            )
+
+    async def UpdateChunk(
+        self,
+        request: ragflow_pb2.UpdateChunkRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.StatusResponse:
+        """Update chunk configuration."""
+        try:
+            update_data = {}
+            if request.content:
+                update_data["content"] = request.content
+            if request.metadata:
+                update_data["metadata"] = request.metadata
+            if request.HasField("position"):
+                update_data["position"] = request.position
+
+            result = await self.ragflow_client.update_chunk(
+                request.dataset_id, request.chunk_id, update_data
+            )
+
+            return ragflow_pb2.StatusResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+            )
+        except Exception as e:
+            logger.error(f"Error updating chunk: {e}")
+            return ragflow_pb2.StatusResponse(status=False, message=str(e))
+
+    async def DeleteChunks(
+        self,
+        request: ragflow_pb2.DeleteChunksRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.StatusResponse:
+        """Delete chunks from dataset."""
+        try:
+            chunk_ids = list(request.ids) if request.ids else []
+            result = await self.ragflow_client.delete_chunks(
+                request.dataset_id, chunk_ids
+            )
+
+            return ragflow_pb2.StatusResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+            )
+        except Exception as e:
+            logger.error(f"Error deleting chunks: {e}")
+            return ragflow_pb2.StatusResponse(status=False, message=str(e))
+
     # Chat Methods
     async def Chat(
         self, request: ragflow_pb2.ChatRequest, context: grpc.aio.ServicerContext

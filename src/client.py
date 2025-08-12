@@ -361,6 +361,186 @@ class RagFlowGRPCClient:
         response = await self.stub.DeleteChatAssistants(request)
         return response
 
+    # Session Management methods
+    async def create_session(
+        self, chat_id: str, name: str, user_id: Optional[str] = None
+    ) -> ragflow_pb2.CreateSessionResponse:
+        """Create a chat session."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.CreateSessionRequest(chat_id=chat_id, name=name)
+        if user_id:
+            request.user_id = user_id
+
+        response = await self.stub.CreateSession(request)
+        return response
+
+    async def list_sessions(
+        self,
+        chat_id: str,
+        page: int = 1,
+        page_size: int = 30,
+        orderby: str = "create_time",
+        desc: bool = True,
+        name: Optional[str] = None,
+        session_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+    ) -> ragflow_pb2.ListSessionsResponse:
+        """List chat sessions with pagination and filtering."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.ListSessionsRequest(
+            chat_id=chat_id,
+            page=page,
+            page_size=page_size,
+            orderby=orderby,
+            desc=desc,
+        )
+        if name:
+            request.name = name
+        if session_id:
+            request.id = session_id
+        if user_id:
+            request.user_id = user_id
+
+        response = await self.stub.ListSessions(request)
+        return response
+
+    async def update_session(
+        self,
+        chat_id: str,
+        session_id: str,
+        name: Optional[str] = None,
+        user_id: Optional[str] = None,
+    ) -> ragflow_pb2.StatusResponse:
+        """Update session configuration."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.UpdateSessionRequest(
+            chat_id=chat_id, session_id=session_id
+        )
+        if name:
+            request.name = name
+        if user_id:
+            request.user_id = user_id
+
+        response = await self.stub.UpdateSession(request)
+        return response
+
+    async def delete_sessions(
+        self, chat_id: str, session_ids: Optional[List[str]] = None
+    ) -> ragflow_pb2.StatusResponse:
+        """Delete sessions from chat assistant."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.DeleteSessionsRequest(chat_id=chat_id)
+        if session_ids:
+            request.ids.extend(session_ids)
+
+        response = await self.stub.DeleteSessions(request)
+        return response
+
+    # Chunk Management methods
+    async def create_chunk(
+        self,
+        dataset_id: str,
+        document_id: str,
+        content: str,
+        metadata: Optional[str] = None,
+        position: Optional[int] = None,
+    ) -> ragflow_pb2.CreateChunkResponse:
+        """Create a document chunk."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.CreateChunkRequest(
+            dataset_id=dataset_id,
+            document_id=document_id,
+            content=content,
+        )
+        if metadata:
+            request.metadata = metadata
+        if position is not None:
+            request.position = position
+
+        response = await self.stub.CreateChunk(request)
+        return response
+
+    async def list_chunks(
+        self,
+        dataset_id: str,
+        document_id: Optional[str] = None,
+        page: int = 1,
+        page_size: int = 30,
+        orderby: str = "create_time",
+        desc: bool = True,
+        keywords: Optional[str] = None,
+        chunk_id: Optional[str] = None,
+    ) -> ragflow_pb2.ListChunksResponse:
+        """List chunks in a dataset."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.ListChunksRequest(
+            dataset_id=dataset_id,
+            page=page,
+            page_size=page_size,
+            orderby=orderby,
+            desc=desc,
+        )
+        if document_id:
+            request.document_id = document_id
+        if keywords:
+            request.keywords = keywords
+        if chunk_id:
+            request.id = chunk_id
+
+        response = await self.stub.ListChunks(request)
+        return response
+
+    async def update_chunk(
+        self,
+        dataset_id: str,
+        chunk_id: str,
+        content: Optional[str] = None,
+        metadata: Optional[str] = None,
+        position: Optional[int] = None,
+    ) -> ragflow_pb2.StatusResponse:
+        """Update chunk configuration."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.UpdateChunkRequest(
+            dataset_id=dataset_id, chunk_id=chunk_id
+        )
+        if content:
+            request.content = content
+        if metadata:
+            request.metadata = metadata
+        if position is not None:
+            request.position = position
+
+        response = await self.stub.UpdateChunk(request)
+        return response
+
+    async def delete_chunks(
+        self, dataset_id: str, chunk_ids: Optional[List[str]] = None
+    ) -> ragflow_pb2.StatusResponse:
+        """Delete chunks from dataset."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.DeleteChunksRequest(dataset_id=dataset_id)
+        if chunk_ids:
+            request.ids.extend(chunk_ids)
+
+        response = await self.stub.DeleteChunks(request)
+        return response
+
     # Chat methods
     async def chat(self, kb_id: str, question: str) -> ragflow_pb2.ChatResponse:
         """Chat with knowledge base."""
@@ -607,6 +787,126 @@ class RagFlowSyncClient:
         """Delete chat assistants (sync)."""
         return asyncio.run(
             self._run_async_method("delete_chat_assistants", assistant_ids)
+        )
+
+    # Session Management methods
+    def create_session(
+        self, chat_id: str, name: str, user_id: Optional[str] = None
+    ) -> ragflow_pb2.CreateSessionResponse:
+        """Create session (sync)."""
+        return asyncio.run(
+            self._run_async_method("create_session", chat_id, name, user_id)
+        )
+
+    def list_sessions(
+        self,
+        chat_id: str,
+        page: int = 1,
+        page_size: int = 30,
+        orderby: str = "create_time",
+        desc: bool = True,
+        name: Optional[str] = None,
+        session_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+    ) -> ragflow_pb2.ListSessionsResponse:
+        """List sessions (sync)."""
+        return asyncio.run(
+            self._run_async_method(
+                "list_sessions",
+                chat_id,
+                page,
+                page_size,
+                orderby,
+                desc,
+                name,
+                session_id,
+                user_id,
+            )
+        )
+
+    def update_session(
+        self,
+        chat_id: str,
+        session_id: str,
+        name: Optional[str] = None,
+        user_id: Optional[str] = None,
+    ) -> ragflow_pb2.StatusResponse:
+        """Update session (sync)."""
+        return asyncio.run(
+            self._run_async_method("update_session", chat_id, session_id, name, user_id)
+        )
+
+    def delete_sessions(
+        self, chat_id: str, session_ids: Optional[List[str]] = None
+    ) -> ragflow_pb2.StatusResponse:
+        """Delete sessions (sync)."""
+        return asyncio.run(
+            self._run_async_method("delete_sessions", chat_id, session_ids)
+        )
+
+    # Chunk Management methods
+    def create_chunk(
+        self,
+        dataset_id: str,
+        document_id: str,
+        content: str,
+        metadata: Optional[str] = None,
+        position: Optional[int] = None,
+    ) -> ragflow_pb2.CreateChunkResponse:
+        """Create chunk (sync)."""
+        return asyncio.run(
+            self._run_async_method(
+                "create_chunk", dataset_id, document_id, content, metadata, position
+            )
+        )
+
+    def list_chunks(
+        self,
+        dataset_id: str,
+        document_id: Optional[str] = None,
+        page: int = 1,
+        page_size: int = 30,
+        orderby: str = "create_time",
+        desc: bool = True,
+        keywords: Optional[str] = None,
+        chunk_id: Optional[str] = None,
+    ) -> ragflow_pb2.ListChunksResponse:
+        """List chunks (sync)."""
+        return asyncio.run(
+            self._run_async_method(
+                "list_chunks",
+                dataset_id,
+                document_id,
+                page,
+                page_size,
+                orderby,
+                desc,
+                keywords,
+                chunk_id,
+            )
+        )
+
+    def update_chunk(
+        self,
+        dataset_id: str,
+        chunk_id: str,
+        content: Optional[str] = None,
+        metadata: Optional[str] = None,
+        position: Optional[int] = None,
+    ) -> ragflow_pb2.StatusResponse:
+        """Update chunk (sync)."""
+        return asyncio.run(
+            self._run_async_method(
+                "update_chunk", dataset_id, chunk_id, content, metadata, position
+            )
+        )
+
+    def delete_chunks(
+        self, dataset_id: str, chunk_ids: Optional[List[str]] = None
+    ) -> ragflow_pb2.StatusResponse:
+        """Delete chunks (sync)."""
+        return asyncio.run(
+            self._run_async_method("delete_chunks", dataset_id, chunk_ids)
         )
 
     # Chat methods

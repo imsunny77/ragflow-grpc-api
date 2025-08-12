@@ -381,6 +381,237 @@ class RAGFlowClient:
         except Exception as e:
             return {"status": False, "data": {}, "error": str(e)}
 
+    # Session Management Methods
+    async def create_session(
+        self, chat_id: str, name: str, user_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Create a chat session."""
+        try:
+            session_data = {"name": name}
+            if user_id:
+                session_data["user_id"] = user_id
+
+            response = await self.client.post(
+                f"/api/v1/chats/{chat_id}/sessions", json=session_data
+            )
+            data = response.json() if response.status_code == 200 else {}
+            return {"status": response.status_code == 200, "data": data}
+        except httpx.ConnectError:
+            return {
+                "status": False,
+                "data": {},
+                "error": "All connection attempts failed",
+            }
+        except Exception as e:
+            return {"status": False, "data": {}, "error": str(e)}
+
+    async def list_sessions(
+        self,
+        chat_id: str,
+        page: int = 1,
+        page_size: int = 30,
+        orderby: str = "create_time",
+        desc: bool = True,
+        name: Optional[str] = None,
+        session_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """List chat sessions with pagination and filtering."""
+        try:
+            params = {
+                "page": page,
+                "page_size": page_size,
+                "orderby": orderby,
+                "desc": str(desc).lower(),
+            }
+            if name:
+                params["name"] = name
+            if session_id:
+                params["id"] = session_id
+            if user_id:
+                params["user_id"] = user_id
+
+            response = await self.client.get(
+                f"/api/v1/chats/{chat_id}/sessions", params=params
+            )
+            data = response.json() if response.status_code == 200 else {}
+
+            if response.status_code == 200 and "data" in data:
+                sessions = (
+                    data["data"] if isinstance(data["data"], list) else [data["data"]]
+                )
+                return {"status": True, "data": sessions}
+            else:
+                return {
+                    "status": False,
+                    "data": [],
+                    "error": data.get("message", "Failed to list sessions"),
+                }
+
+        except httpx.ConnectError:
+            return {
+                "status": False,
+                "data": [],
+                "error": "All connection attempts failed",
+            }
+        except Exception as e:
+            return {"status": False, "data": [], "error": str(e)}
+
+    async def update_session(
+        self, chat_id: str, session_id: str, update_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Update session configuration."""
+        try:
+            response = await self.client.put(
+                f"/api/v1/chats/{chat_id}/sessions/{session_id}", json=update_data
+            )
+            data = response.json() if response.content else {}
+            return {"status": response.status_code == 200, "data": data}
+        except httpx.ConnectError:
+            return {
+                "status": False,
+                "data": {},
+                "error": "All connection attempts failed",
+            }
+        except Exception as e:
+            return {"status": False, "data": {}, "error": str(e)}
+
+    async def delete_sessions(
+        self, chat_id: str, session_ids: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
+        """Delete sessions from chat assistant."""
+        try:
+            payload = {"ids": session_ids} if session_ids else {"ids": None}
+
+            response = await self.client.delete(
+                f"/api/v1/chats/{chat_id}/sessions", json=payload
+            )
+            data = response.json() if response.content else {}
+            return {"status": response.status_code == 200, "data": data}
+        except httpx.ConnectError:
+            return {
+                "status": False,
+                "data": {},
+                "error": "All connection attempts failed",
+            }
+        except Exception as e:
+            return {"status": False, "data": {}, "error": str(e)}
+
+    # Chunk Management Methods
+    async def create_chunk(
+        self,
+        dataset_id: str,
+        document_id: str,
+        content: str,
+        metadata: Optional[str] = None,
+        position: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Create a document chunk."""
+        try:
+            chunk_data = {
+                "document_id": document_id,
+                "content": content,
+            }
+            if metadata:
+                chunk_data["metadata"] = metadata
+            if position is not None:
+                chunk_data["position"] = position
+
+            response = await self.client.post(
+                f"/api/v1/datasets/{dataset_id}/chunks", json=chunk_data
+            )
+            data = response.json() if response.status_code == 200 else {}
+            return {"status": response.status_code == 200, "data": data}
+        except httpx.ConnectError:
+            return {
+                "status": False,
+                "data": {},
+                "error": "All connection attempts failed",
+            }
+        except Exception as e:
+            return {"status": False, "data": {}, "error": str(e)}
+
+    async def list_chunks(
+        self,
+        dataset_id: str,
+        document_id: Optional[str] = None,
+        page: int = 1,
+        page_size: int = 30,
+        orderby: str = "create_time",
+        desc: bool = True,
+        keywords: Optional[str] = None,
+        chunk_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """List chunks in a dataset."""
+        try:
+            params = {
+                "page": page,
+                "page_size": page_size,
+                "orderby": orderby,
+                "desc": str(desc).lower(),
+            }
+            if document_id:
+                params["document_id"] = document_id
+            if keywords:
+                params["keywords"] = keywords
+            if chunk_id:
+                params["id"] = chunk_id
+
+            response = await self.client.get(
+                f"/api/v1/datasets/{dataset_id}/chunks", params=params
+            )
+            data = response.json() if response.status_code == 200 else {}
+            return {"status": response.status_code == 200, "data": data}
+        except httpx.ConnectError:
+            return {
+                "status": False,
+                "data": {},
+                "error": "All connection attempts failed",
+            }
+        except Exception as e:
+            return {"status": False, "data": {}, "error": str(e)}
+
+    async def update_chunk(
+        self, dataset_id: str, chunk_id: str, update_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Update chunk configuration."""
+        try:
+            response = await self.client.put(
+                f"/api/v1/datasets/{dataset_id}/chunks/{chunk_id}",
+                json=update_data,
+            )
+            data = response.json() if response.content else {}
+            return {"status": response.status_code == 200, "data": data}
+        except httpx.ConnectError:
+            return {
+                "status": False,
+                "data": {},
+                "error": "All connection attempts failed",
+            }
+        except Exception as e:
+            return {"status": False, "data": {}, "error": str(e)}
+
+    async def delete_chunks(
+        self, dataset_id: str, chunk_ids: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
+        """Delete chunks from dataset."""
+        try:
+            payload = {"ids": chunk_ids} if chunk_ids else {"ids": None}
+
+            response = await self.client.delete(
+                f"/api/v1/datasets/{dataset_id}/chunks", json=payload
+            )
+            data = response.json() if response.content else {}
+            return {"status": response.status_code == 200, "data": data}
+        except httpx.ConnectError:
+            return {
+                "status": False,
+                "data": {},
+                "error": "All connection attempts failed",
+            }
+        except Exception as e:
+            return {"status": False, "data": {}, "error": str(e)}
+
     # Chat Methods
     async def chat(self, kb_id: str, question: str) -> Dict[str, Any]:
         """Chat with knowledge base."""
