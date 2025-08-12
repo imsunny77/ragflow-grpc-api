@@ -63,7 +63,70 @@ message DeleteDatasetsRequest {
   repeated string ids = 1; // if empty, deletes all datasets
 }
 
-// Document messages
+// Document Management messages
+message Document {
+  string id = 1;
+  string name = 2;
+  string dataset_id = 3;
+  int32 size = 4;
+  string type = 5;
+  string chunk_method = 6;
+  int32 chunk_count = 7;
+  string status = 8;
+  string create_date = 9;
+  string update_date = 10;
+  optional string thumbnail = 11;
+}
+
+message ListDocumentsRequest {
+  string dataset_id = 1;
+  optional int32 page = 2;
+  optional int32 page_size = 3;
+  optional string orderby = 4;
+  optional bool desc = 5;
+  optional string keywords = 6;
+  optional string id = 7;
+  optional string name = 8;
+}
+
+message ListDocumentsResponse {
+  bool status = 1;
+  string message = 2;
+  repeated Document documents = 3;
+  optional int32 total = 4;
+}
+
+message UpdateDocumentRequest {
+  string dataset_id = 1;
+  string document_id = 2;
+  optional string name = 3;
+  optional string chunk_method = 4;
+  // parser_config as JSON string for simplicity
+  optional string parser_config = 5;
+}
+
+message DownloadDocumentRequest {
+  string dataset_id = 1;
+  string document_id = 2;
+}
+
+message DownloadDocumentResponse {
+  bool status = 1;
+  string message = 2;
+  optional bytes file_data = 3;
+  optional string filename = 4;
+}
+
+message DeleteDocumentsRequest {
+  string dataset_id = 1;
+  repeated string ids = 2; // if empty, deletes all documents in dataset
+}
+
+message ParseDocumentsRequest {
+  string dataset_id = 1;
+  repeated string document_ids = 2;
+}
+
 message UploadDocumentRequest {
   string kb_id = 1;
   bytes file_data = 2;
@@ -89,10 +152,15 @@ service RagServices {
   rpc ListDatasets(ListDatasetsRequest) returns (ListDatasetsResponse);
   rpc UpdateDataset(UpdateDatasetRequest) returns (StatusResponse);
   rpc DeleteDatasets(DeleteDatasetsRequest) returns (StatusResponse);
-  
+
   // Document Management
   rpc UploadDocument(UploadDocumentRequest) returns (StatusResponse);
-  
+  rpc ListDocuments(ListDocumentsRequest) returns (ListDocumentsResponse);
+  rpc UpdateDocument(UpdateDocumentRequest) returns (StatusResponse);
+  rpc DownloadDocument(DownloadDocumentRequest) returns (DownloadDocumentResponse);
+  rpc DeleteDocuments(DeleteDocumentsRequest) returns (StatusResponse);
+  rpc ParseDocuments(ParseDocumentsRequest) returns (StatusResponse);
+
   // Chat
   rpc Chat(ChatRequest) returns (ChatResponse);
 }

@@ -5,8 +5,6 @@ import logging
 import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any
-
 
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 
@@ -148,7 +146,7 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
         """Delete datasets."""
         try:
             # Convert repeated field to list
-            dataset_ids = list(request.ids) if request.ids else None
+            dataset_ids = list(request.ids) if request.ids else []
 
             result = await self.ragflow_client.delete_datasets(dataset_ids)
 
