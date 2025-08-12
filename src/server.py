@@ -30,6 +30,7 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
         )
         self.ragflow_client = RAGFlowClient(config)
 
+    # Dataset Management Methods
     async def CreateKnowledgeBase(
         self,
         request: ragflow_pb2.CreateKnowledgeBaseRequest,
@@ -111,7 +112,6 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
     ) -> ragflow_pb2.StatusResponse:
         """Update dataset."""
         try:
-            # Build update data from non-empty optional fields
             update_data = {}
             if request.name:
                 update_data["name"] = request.name
@@ -145,9 +145,7 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
     ) -> ragflow_pb2.StatusResponse:
         """Delete datasets."""
         try:
-            # Convert repeated field to list
             dataset_ids = list(request.ids) if request.ids else []
-
             result = await self.ragflow_client.delete_datasets(dataset_ids)
 
             return ragflow_pb2.StatusResponse(
@@ -160,6 +158,7 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
             logger.error(f"Error deleting datasets: {e}")
             return ragflow_pb2.StatusResponse(status=False, message=str(e))
 
+    # Document Management Methods
     async def UploadDocument(
         self,
         request: ragflow_pb2.UploadDocumentRequest,
@@ -180,6 +179,172 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
             logger.error(f"Error uploading document: {e}")
             return ragflow_pb2.StatusResponse(status=False, message=str(e))
 
+    async def ListDocuments(
+        self,
+        request: ragflow_pb2.ListDocumentsRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.ListDocumentsResponse:
+        """List documents in a dataset."""
+        try:
+            result = await self.ragflow_client.list_documents(
+                dataset_id=request.dataset_id,
+                page=request.page or 1,
+                page_size=request.page_size or 30,
+                orderby=request.orderby or "create_time",
+                desc=request.desc if request.HasField("desc") else True,
+                keywords=request.keywords or None,
+                document_id=request.id or None,
+                name=request.name or None,
+            )
+
+            documents = []
+            total = 0
+            if result["status"] and result.get("data"):
+                doc_data = result["data"]
+                total = doc_data.get("total", 0)
+                docs_list = doc_data.get("docs", [])
+
+                for doc_info in docs_list:
+                    document = ragflow_pb2.Document(
+                        id=doc_info.get("id", ""),
+                        name=doc_info.get("name", ""),
+                        dataset_id=doc_info.get("dataset_id", "")
+                        or doc_info.get("knowledgebase_id", ""),
+                        size=doc_info.get("size", 0),
+                        type=doc_info.get("type", ""),
+                        chunk_method=doc_info.get("chunk_method", ""),
+                        chunk_count=doc_info.get("chunk_count", 0),
+                        status=doc_info.get("status", ""),
+                        create_date=doc_info.get("create_date", ""),
+                        update_date=doc_info.get("update_date", ""),
+                        thumbnail=doc_info.get("thumbnail") or "",
+                    )
+                    documents.append(document)
+
+            return ragflow_pb2.ListDocumentsResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+                documents=documents,
+                total=total,
+            )
+        except Exception as e:
+            logger.error(f"Error listing documents: {e}")
+            return ragflow_pb2.ListDocumentsResponse(
+                status=False, message=str(e), documents=[], total=0
+            )
+
+    async def UpdateDocument(
+        self,
+        request: ragflow_pb2.UpdateDocumentRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.StatusResponse:
+        """Update document configuration."""
+        try:
+            update_data = {}
+            if request.name:
+                update_data["name"] = request.name
+            if request.chunk_method:
+                update_data["chunk_method"] = request.chunk_method
+            if request.parser_config:
+                # Parse JSON string to dict
+                import json
+
+                try:
+                    update_data["parser_config"] = json.loads(request.parser_config)
+                except json.JSONDecodeError:
+                    return ragflow_pb2.StatusResponse(
+                        status=False, message="Invalid parser_config JSON"
+                    )
+
+            result = await self.ragflow_client.update_document(
+                request.dataset_id, request.document_id, update_data
+            )
+
+            return ragflow_pb2.StatusResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+            )
+        except Exception as e:
+            logger.error(f"Error updating document: {e}")
+            return ragflow_pb2.StatusResponse(status=False, message=str(e))
+
+    async def DownloadDocument(
+        self,
+        request: ragflow_pb2.DownloadDocumentRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.DownloadDocumentResponse:
+        """Download document file."""
+        try:
+            result = await self.ragflow_client.download_document(
+                request.dataset_id, request.document_id
+            )
+
+            if result["status"]:
+                return ragflow_pb2.DownloadDocumentResponse(
+                    status=True,
+                    message="Success",
+                    file_data=result.get("data", b""),
+                    filename=result.get("filename", "downloaded_file"),
+                )
+            else:
+                return ragflow_pb2.DownloadDocumentResponse(
+                    status=False, message=result.get("error", "Failed to download")
+                )
+        except Exception as e:
+            logger.error(f"Error downloading document: {e}")
+            return ragflow_pb2.DownloadDocumentResponse(status=False, message=str(e))
+
+    async def DeleteDocuments(
+        self,
+        request: ragflow_pb2.DeleteDocumentsRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.StatusResponse:
+        """Delete documents from dataset."""
+        try:
+            document_ids = list(request.ids) if request.ids else []
+
+            result = await self.ragflow_client.delete_documents(
+                request.dataset_id, document_ids
+            )
+
+            return ragflow_pb2.StatusResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+            )
+        except Exception as e:
+            logger.error(f"Error deleting documents: {e}")
+            return ragflow_pb2.StatusResponse(status=False, message=str(e))
+
+    async def ParseDocuments(
+        self,
+        request: ragflow_pb2.ParseDocumentsRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.StatusResponse:
+        """Start parsing documents into chunks."""
+        try:
+            document_ids = list(request.document_ids)
+
+            result = await self.ragflow_client.parse_documents(
+                request.dataset_id, document_ids
+            )
+
+            return ragflow_pb2.StatusResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+            )
+        except Exception as e:
+            logger.error(f"Error parsing documents: {e}")
+            return ragflow_pb2.StatusResponse(status=False, message=str(e))
+
+    # Chat Methods
     async def Chat(
         self, request: ragflow_pb2.ChatRequest, context: grpc.aio.ServicerContext
     ) -> ragflow_pb2.ChatResponse:

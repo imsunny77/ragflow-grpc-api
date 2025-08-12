@@ -67,6 +67,36 @@ class RagServicesStub:
             response_deserializer=ragflow__pb2.StatusResponse.FromString,
             _registered_method=True,
         )
+        self.ListDocuments = channel.unary_unary(
+            "/ragflow.RagServices/ListDocuments",
+            request_serializer=ragflow__pb2.ListDocumentsRequest.SerializeToString,
+            response_deserializer=ragflow__pb2.ListDocumentsResponse.FromString,
+            _registered_method=True,
+        )
+        self.UpdateDocument = channel.unary_unary(
+            "/ragflow.RagServices/UpdateDocument",
+            request_serializer=ragflow__pb2.UpdateDocumentRequest.SerializeToString,
+            response_deserializer=ragflow__pb2.StatusResponse.FromString,
+            _registered_method=True,
+        )
+        self.DownloadDocument = channel.unary_unary(
+            "/ragflow.RagServices/DownloadDocument",
+            request_serializer=ragflow__pb2.DownloadDocumentRequest.SerializeToString,
+            response_deserializer=ragflow__pb2.DownloadDocumentResponse.FromString,
+            _registered_method=True,
+        )
+        self.DeleteDocuments = channel.unary_unary(
+            "/ragflow.RagServices/DeleteDocuments",
+            request_serializer=ragflow__pb2.DeleteDocumentsRequest.SerializeToString,
+            response_deserializer=ragflow__pb2.StatusResponse.FromString,
+            _registered_method=True,
+        )
+        self.ParseDocuments = channel.unary_unary(
+            "/ragflow.RagServices/ParseDocuments",
+            request_serializer=ragflow__pb2.ParseDocumentsRequest.SerializeToString,
+            response_deserializer=ragflow__pb2.StatusResponse.FromString,
+            _registered_method=True,
+        )
         self.Chat = channel.unary_unary(
             "/ragflow.RagServices/Chat",
             request_serializer=ragflow__pb2.ChatRequest.SerializeToString,
@@ -108,6 +138,36 @@ class RagServicesServicer:
         context.set_details("Method not implemented!")
         raise NotImplementedError("Method not implemented!")
 
+    def ListDocuments(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
+
+    def UpdateDocument(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
+
+    def DownloadDocument(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
+
+    def DeleteDocuments(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
+
+    def ParseDocuments(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
+
     def Chat(self, request, context):
         """Chat"""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -140,6 +200,31 @@ def add_RagServicesServicer_to_server(servicer, server):
         "UploadDocument": grpc.unary_unary_rpc_method_handler(
             servicer.UploadDocument,
             request_deserializer=ragflow__pb2.UploadDocumentRequest.FromString,
+            response_serializer=ragflow__pb2.StatusResponse.SerializeToString,
+        ),
+        "ListDocuments": grpc.unary_unary_rpc_method_handler(
+            servicer.ListDocuments,
+            request_deserializer=ragflow__pb2.ListDocumentsRequest.FromString,
+            response_serializer=ragflow__pb2.ListDocumentsResponse.SerializeToString,
+        ),
+        "UpdateDocument": grpc.unary_unary_rpc_method_handler(
+            servicer.UpdateDocument,
+            request_deserializer=ragflow__pb2.UpdateDocumentRequest.FromString,
+            response_serializer=ragflow__pb2.StatusResponse.SerializeToString,
+        ),
+        "DownloadDocument": grpc.unary_unary_rpc_method_handler(
+            servicer.DownloadDocument,
+            request_deserializer=ragflow__pb2.DownloadDocumentRequest.FromString,
+            response_serializer=ragflow__pb2.DownloadDocumentResponse.SerializeToString,
+        ),
+        "DeleteDocuments": grpc.unary_unary_rpc_method_handler(
+            servicer.DeleteDocuments,
+            request_deserializer=ragflow__pb2.DeleteDocumentsRequest.FromString,
+            response_serializer=ragflow__pb2.StatusResponse.SerializeToString,
+        ),
+        "ParseDocuments": grpc.unary_unary_rpc_method_handler(
+            servicer.ParseDocuments,
+            request_deserializer=ragflow__pb2.ParseDocumentsRequest.FromString,
             response_serializer=ragflow__pb2.StatusResponse.SerializeToString,
         ),
         "Chat": grpc.unary_unary_rpc_method_handler(
@@ -297,6 +382,156 @@ class RagServices:
             target,
             "/ragflow.RagServices/UploadDocument",
             ragflow__pb2.UploadDocumentRequest.SerializeToString,
+            ragflow__pb2.StatusResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True,
+        )
+
+    @staticmethod
+    def ListDocuments(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            "/ragflow.RagServices/ListDocuments",
+            ragflow__pb2.ListDocumentsRequest.SerializeToString,
+            ragflow__pb2.ListDocumentsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True,
+        )
+
+    @staticmethod
+    def UpdateDocument(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            "/ragflow.RagServices/UpdateDocument",
+            ragflow__pb2.UpdateDocumentRequest.SerializeToString,
+            ragflow__pb2.StatusResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True,
+        )
+
+    @staticmethod
+    def DownloadDocument(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            "/ragflow.RagServices/DownloadDocument",
+            ragflow__pb2.DownloadDocumentRequest.SerializeToString,
+            ragflow__pb2.DownloadDocumentResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True,
+        )
+
+    @staticmethod
+    def DeleteDocuments(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            "/ragflow.RagServices/DeleteDocuments",
+            ragflow__pb2.DeleteDocumentsRequest.SerializeToString,
+            ragflow__pb2.StatusResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True,
+        )
+
+    @staticmethod
+    def ParseDocuments(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            "/ragflow.RagServices/ParseDocuments",
+            ragflow__pb2.ParseDocumentsRequest.SerializeToString,
             ragflow__pb2.StatusResponse.FromString,
             options,
             channel_credentials,

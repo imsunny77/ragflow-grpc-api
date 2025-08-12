@@ -1,6 +1,7 @@
 """Async gRPC client for RAGFlow."""
 
 import asyncio
+import json
 import logging
 import os
 import sys
@@ -117,7 +118,7 @@ class RagFlowGRPCClient:
         response = await self.stub.DeleteDatasets(request)
         return response
 
-    # Document methods
+    # Document Management methods
     async def upload_document(
         self, kb_id: str, file_data: bytes, filename: str
     ) -> ragflow_pb2.StatusResponse:
@@ -129,6 +130,103 @@ class RagFlowGRPCClient:
             kb_id=kb_id, file_data=file_data, filename=filename
         )
         response = await self.stub.UploadDocument(request)
+        return response
+
+    async def list_documents(
+        self,
+        dataset_id: str,
+        page: int = 1,
+        page_size: int = 30,
+        orderby: str = "create_time",
+        desc: bool = True,
+        keywords: str | None = None,
+        document_id: str | None = None,
+        name: str | None = None,
+    ) -> ragflow_pb2.ListDocumentsResponse:
+        """List documents in a dataset."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.ListDocumentsRequest(
+            dataset_id=dataset_id,
+            page=page,
+            page_size=page_size,
+            orderby=orderby,
+            desc=desc,
+        )
+        if keywords:
+            request.keywords = keywords
+        if document_id:
+            request.id = document_id
+        if name:
+            request.name = name
+
+        response = await self.stub.ListDocuments(request)
+        return response
+
+    async def update_document(
+        self,
+        dataset_id: str,
+        document_id: str,
+        name: str | None = None,
+        chunk_method: str | None = None,
+        parser_config: dict | None = None,
+    ) -> ragflow_pb2.StatusResponse:
+        """Update document configuration."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.UpdateDocumentRequest(
+            dataset_id=dataset_id, document_id=document_id
+        )
+        if name:
+            request.name = name
+        if chunk_method:
+            request.chunk_method = chunk_method
+        if parser_config:
+            request.parser_config = json.dumps(parser_config)
+
+        response = await self.stub.UpdateDocument(request)
+        return response
+
+    async def download_document(
+        self, dataset_id: str, document_id: str
+    ) -> ragflow_pb2.DownloadDocumentResponse:
+        """Download document file."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.DownloadDocumentRequest(
+            dataset_id=dataset_id, document_id=document_id
+        )
+        response = await self.stub.DownloadDocument(request)
+        return response
+
+    async def delete_documents(
+        self, dataset_id: str, document_ids: list[str] | None = None
+    ) -> ragflow_pb2.StatusResponse:
+        """Delete documents from dataset."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.DeleteDocumentsRequest(dataset_id=dataset_id)
+        if document_ids:
+            request.ids.extend(document_ids)
+
+        response = await self.stub.DeleteDocuments(request)
+        return response
+
+    async def parse_documents(
+        self, dataset_id: str, document_ids: list[str]
+    ) -> ragflow_pb2.StatusResponse:
+        """Start parsing documents into chunks."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.ParseDocumentsRequest(dataset_id=dataset_id)
+        request.document_ids.extend(document_ids)
+
+        response = await self.stub.ParseDocuments(request)
         return response
 
     # Chat methods
@@ -201,13 +299,83 @@ class RagFlowSyncClient:
         """Delete datasets (sync)."""
         return asyncio.run(self._run_async_method("delete_datasets", dataset_ids))
 
-    # Document methods
+    # Document Management methods
     def upload_document(
         self, kb_id: str, file_data: bytes, filename: str
     ) -> ragflow_pb2.StatusResponse:
         """Upload document (sync)."""
         return asyncio.run(
             self._run_async_method("upload_document", kb_id, file_data, filename)
+        )
+
+    def list_documents(
+        self,
+        dataset_id: str,
+        page: int = 1,
+        page_size: int = 30,
+        orderby: str = "create_time",
+        desc: bool = True,
+        keywords: str | None = None,
+        document_id: str | None = None,
+        name: str | None = None,
+    ) -> ragflow_pb2.ListDocumentsResponse:
+        """List documents (sync)."""
+        return asyncio.run(
+            self._run_async_method(
+                "list_documents",
+                dataset_id,
+                page,
+                page_size,
+                orderby,
+                desc,
+                keywords,
+                document_id,
+                name,
+            )
+        )
+
+    def update_document(
+        self,
+        dataset_id: str,
+        document_id: str,
+        name: str | None = None,
+        chunk_method: str | None = None,
+        parser_config: dict | None = None,
+    ) -> ragflow_pb2.StatusResponse:
+        """Update document (sync)."""
+        return asyncio.run(
+            self._run_async_method(
+                "update_document",
+                dataset_id,
+                document_id,
+                name,
+                chunk_method,
+                parser_config,
+            )
+        )
+
+    def download_document(
+        self, dataset_id: str, document_id: str
+    ) -> ragflow_pb2.DownloadDocumentResponse:
+        """Download document (sync)."""
+        return asyncio.run(
+            self._run_async_method("download_document", dataset_id, document_id)
+        )
+
+    def delete_documents(
+        self, dataset_id: str, document_ids: list[str] | None = None
+    ) -> ragflow_pb2.StatusResponse:
+        """Delete documents (sync)."""
+        return asyncio.run(
+            self._run_async_method("delete_documents", dataset_id, document_ids)
+        )
+
+    def parse_documents(
+        self, dataset_id: str, document_ids: list[str]
+    ) -> ragflow_pb2.StatusResponse:
+        """Parse documents (sync)."""
+        return asyncio.run(
+            self._run_async_method("parse_documents", dataset_id, document_ids)
         )
 
     # Chat methods
