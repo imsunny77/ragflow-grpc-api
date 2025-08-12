@@ -5,6 +5,8 @@ import logging
 import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from typing import Any
+
 
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 
@@ -248,7 +250,6 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
             if request.chunk_method:
                 update_data["chunk_method"] = request.chunk_method
             if request.parser_config:
-                # Parse JSON string to dict
                 import json
 
                 try:
@@ -342,6 +343,221 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
             )
         except Exception as e:
             logger.error(f"Error parsing documents: {e}")
+            return ragflow_pb2.StatusResponse(status=False, message=str(e))
+
+    # Chat Assistant Management Methods
+    async def CreateChatAssistant(
+        self,
+        request: ragflow_pb2.CreateChatAssistantRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.CreateChatAssistantResponse:
+        """Create chat assistant."""
+        try:
+            # Build assistant configuration
+            assistant_config = {
+                "name": request.name,
+                "description": request.description or "",
+                "avatar": request.avatar or "",
+                "dataset_ids": list(request.dataset_ids) if request.dataset_ids else [],
+                "llm": {
+                    "model_name": request.llm_model or "default",
+                    "temperature": (
+                        request.temperature if request.HasField("temperature") else 0.1
+                    ),
+                    "top_p": request.top_p if request.HasField("top_p") else 0.3,
+                    "presence_penalty": (
+                        request.presence_penalty
+                        if request.HasField("presence_penalty")
+                        else 0.4
+                    ),
+                    "frequency_penalty": (
+                        request.frequency_penalty
+                        if request.HasField("frequency_penalty")
+                        else 0.7
+                    ),
+                },
+                "prompt": {
+                    "prompt": request.prompt or "You are a helpful assistant.",
+                    "similarity_threshold": (
+                        request.similarity_threshold
+                        if request.HasField("similarity_threshold")
+                        else 0.2
+                    ),
+                    "keywords_similarity_weight": (
+                        request.keywords_similarity_weight
+                        if request.HasField("keywords_similarity_weight")
+                        else 0.7
+                    ),
+                    "top_n": request.top_n if request.HasField("top_n") else 6,
+                },
+            }
+
+            result = await self.ragflow_client.create_chat_assistant(assistant_config)
+
+            chat_id = ""
+            if result["status"] and result.get("data"):
+                chat_id = result["data"].get("data", {}).get("id", "") or result[
+                    "data"
+                ].get("id", "")
+
+            return ragflow_pb2.CreateChatAssistantResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+                chat_id=chat_id,
+            )
+        except Exception as e:
+            logger.error(f"Error creating chat assistant: {e}")
+            return ragflow_pb2.CreateChatAssistantResponse(status=False, message=str(e))
+
+    async def ListChatAssistants(
+        self,
+        request: ragflow_pb2.ListChatAssistantsRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.ListChatAssistantsResponse:
+        """List chat assistants."""
+        try:
+            result = await self.ragflow_client.list_chat_assistants(
+                page=request.page or 1,
+                page_size=request.page_size or 30,
+                orderby=request.orderby or "create_time",
+                desc=request.desc if request.HasField("desc") else True,
+                name=request.name or None,
+                chat_id=request.id or None,
+            )
+
+            assistants = []
+            if result["status"] and result.get("data"):
+                for assistant_data in result["data"]:
+                    llm_config = assistant_data.get("llm", {})
+                    prompt_config = assistant_data.get("prompt", {})
+
+                    assistant = ragflow_pb2.ChatAssistant(
+                        id=assistant_data.get("id", ""),
+                        name=assistant_data.get("name", ""),
+                        description=assistant_data.get("description") or "",
+                        avatar=assistant_data.get("avatar") or "",
+                        llm_model=llm_config.get("model_name", ""),
+                        temperature=llm_config.get("temperature", 0.1),
+                        top_p=llm_config.get("top_p", 0.3),
+                        presence_penalty=llm_config.get("presence_penalty", 0.4),
+                        frequency_penalty=llm_config.get("frequency_penalty", 0.7),
+                        prompt=prompt_config.get("prompt", ""),
+                        similarity_threshold=prompt_config.get(
+                            "similarity_threshold", 0.2
+                        ),
+                        keywords_similarity_weight=prompt_config.get(
+                            "keywords_similarity_weight", 0.7
+                        ),
+                        top_n=prompt_config.get("top_n", 6),
+                        create_date=assistant_data.get("create_date", ""),
+                        update_date=assistant_data.get("update_date", ""),
+                    )
+
+                    # Add dataset IDs
+                    dataset_ids = assistant_data.get("dataset_ids", [])
+                    if dataset_ids:
+                        assistant.dataset_ids.extend(dataset_ids)
+
+                    assistants.append(assistant)
+
+            return ragflow_pb2.ListChatAssistantsResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+                assistants=assistants,
+            )
+        except Exception as e:
+            logger.error(f"Error listing chat assistants: {e}")
+            return ragflow_pb2.ListChatAssistantsResponse(
+                status=False, message=str(e), assistants=[]
+            )
+
+    async def UpdateChatAssistant(
+        self,
+        request: ragflow_pb2.UpdateChatAssistantRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.StatusResponse:
+        """Update chat assistant configuration."""
+        try:
+            update_data = {}
+
+            # Basic fields
+            if request.name:
+                update_data["name"] = request.name
+            if request.description:
+                update_data["description"] = request.description
+            if request.avatar:
+                update_data["avatar"] = request.avatar
+            if request.dataset_ids:
+                update_data["dataset_ids"] = list(request.dataset_ids)
+
+            # LLM configuration
+            llm_config = {}
+            if request.llm_model:
+                llm_config["model_name"] = request.llm_model
+            if request.HasField("temperature"):
+                llm_config["temperature"] = request.temperature
+            if request.HasField("top_p"):
+                llm_config["top_p"] = request.top_p
+            if request.HasField("presence_penalty"):
+                llm_config["presence_penalty"] = request.presence_penalty
+            if request.HasField("frequency_penalty"):
+                llm_config["frequency_penalty"] = request.frequency_penalty
+
+            if llm_config:
+                update_data["llm"] = llm_config
+
+            # Prompt configuration
+            prompt_config = {}
+            if request.prompt:
+                prompt_config["prompt"] = request.prompt
+            if request.HasField("similarity_threshold"):
+                prompt_config["similarity_threshold"] = request.similarity_threshold
+            if request.HasField("keywords_similarity_weight"):
+                prompt_config["keywords_similarity_weight"] = (
+                    request.keywords_similarity_weight
+                )
+            if request.HasField("top_n"):
+                prompt_config["top_n"] = request.top_n
+
+            if prompt_config:
+                update_data["prompt"] = prompt_config
+
+            result = await self.ragflow_client.update_chat_assistant(
+                request.chat_id, update_data
+            )
+
+            return ragflow_pb2.StatusResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+            )
+        except Exception as e:
+            logger.error(f"Error updating chat assistant: {e}")
+            return ragflow_pb2.StatusResponse(status=False, message=str(e))
+
+    async def DeleteChatAssistants(
+        self,
+        request: ragflow_pb2.DeleteChatAssistantsRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.StatusResponse:
+        """Delete chat assistants."""
+        try:
+            assistant_ids = list(request.ids) if request.ids else []
+            result = await self.ragflow_client.delete_chat_assistants(assistant_ids)
+
+            return ragflow_pb2.StatusResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+            )
+        except Exception as e:
+            logger.error(f"Error deleting chat assistants: {e}")
             return ragflow_pb2.StatusResponse(status=False, message=str(e))
 
     # Chat Methods

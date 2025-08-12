@@ -1,16 +1,16 @@
 """Async gRPC client for RAGFlow."""
 
 import asyncio
-import json
 import logging
 import os
 import sys
+from typing import Optional, List, Dict
+import json
 
 # Add src to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 
 import grpc
-
 import ragflow_pb2
 import ragflow_pb2_grpc
 
@@ -23,8 +23,8 @@ class RagFlowGRPCClient:
 
     def __init__(self, server_address: str = "localhost:50051") -> None:
         self.server_address = server_address
-        self.channel: grpc.aio.Channel | None = None
-        self.stub: ragflow_pb2_grpc.RagServicesStub | None = None
+        self.channel: Optional[grpc.aio.Channel] = None
+        self.stub: Optional[ragflow_pb2_grpc.RagServicesStub] = None
 
     async def connect(self) -> None:
         """Connect to gRPC server."""
@@ -58,8 +58,8 @@ class RagFlowGRPCClient:
         page_size: int = 30,
         orderby: str = "create_time",
         desc: bool = True,
-        name: str | None = None,
-        dataset_id: str | None = None,
+        name: Optional[str] = None,
+        dataset_id: Optional[str] = None,
     ) -> ragflow_pb2.ListDatasetsResponse:
         """List datasets with pagination and filtering."""
         if not self.stub:
@@ -79,11 +79,11 @@ class RagFlowGRPCClient:
     async def update_dataset(
         self,
         dataset_id: str,
-        name: str | None = None,
-        description: str | None = None,
-        embedding_model: str | None = None,
-        permission: str | None = None,
-        chunk_method: str | None = None,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        embedding_model: Optional[str] = None,
+        permission: Optional[str] = None,
+        chunk_method: Optional[str] = None,
     ) -> ragflow_pb2.StatusResponse:
         """Update dataset configuration."""
         if not self.stub:
@@ -105,7 +105,7 @@ class RagFlowGRPCClient:
         return response
 
     async def delete_datasets(
-        self, dataset_ids: list[str] | None = None
+        self, dataset_ids: Optional[List[str]] = None
     ) -> ragflow_pb2.StatusResponse:
         """Delete datasets by IDs. If None, deletes all datasets."""
         if not self.stub:
@@ -139,9 +139,9 @@ class RagFlowGRPCClient:
         page_size: int = 30,
         orderby: str = "create_time",
         desc: bool = True,
-        keywords: str | None = None,
-        document_id: str | None = None,
-        name: str | None = None,
+        keywords: Optional[str] = None,
+        document_id: Optional[str] = None,
+        name: Optional[str] = None,
     ) -> ragflow_pb2.ListDocumentsResponse:
         """List documents in a dataset."""
         if not self.stub:
@@ -168,9 +168,9 @@ class RagFlowGRPCClient:
         self,
         dataset_id: str,
         document_id: str,
-        name: str | None = None,
-        chunk_method: str | None = None,
-        parser_config: dict | None = None,
+        name: Optional[str] = None,
+        chunk_method: Optional[str] = None,
+        parser_config: Optional[dict] = None,
     ) -> ragflow_pb2.StatusResponse:
         """Update document configuration."""
         if not self.stub:
@@ -203,7 +203,7 @@ class RagFlowGRPCClient:
         return response
 
     async def delete_documents(
-        self, dataset_id: str, document_ids: list[str] | None = None
+        self, dataset_id: str, document_ids: Optional[List[str]] = None
     ) -> ragflow_pb2.StatusResponse:
         """Delete documents from dataset."""
         if not self.stub:
@@ -217,7 +217,7 @@ class RagFlowGRPCClient:
         return response
 
     async def parse_documents(
-        self, dataset_id: str, document_ids: list[str]
+        self, dataset_id: str, document_ids: List[str]
     ) -> ragflow_pb2.StatusResponse:
         """Start parsing documents into chunks."""
         if not self.stub:
@@ -227,6 +227,138 @@ class RagFlowGRPCClient:
         request.document_ids.extend(document_ids)
 
         response = await self.stub.ParseDocuments(request)
+        return response
+
+    # Chat Assistant Management methods
+    async def create_chat_assistant(
+        self,
+        name: str,
+        description: str = "",
+        avatar: str = "",
+        dataset_ids: Optional[List[str]] = None,
+        llm_model: str = "default",
+        temperature: float = 0.1,
+        top_p: float = 0.3,
+        presence_penalty: float = 0.4,
+        frequency_penalty: float = 0.7,
+        prompt: str = "You are a helpful assistant.",
+        similarity_threshold: float = 0.2,
+        keywords_similarity_weight: float = 0.7,
+        top_n: int = 6,
+    ) -> ragflow_pb2.CreateChatAssistantResponse:
+        """Create a chat assistant."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.CreateChatAssistantRequest(
+            name=name,
+            description=description,
+            avatar=avatar,
+            llm_model=llm_model,
+            temperature=temperature,
+            top_p=top_p,
+            presence_penalty=presence_penalty,
+            frequency_penalty=frequency_penalty,
+            prompt=prompt,
+            similarity_threshold=similarity_threshold,
+            keywords_similarity_weight=keywords_similarity_weight,
+            top_n=top_n,
+        )
+        if dataset_ids:
+            request.dataset_ids.extend(dataset_ids)
+
+        response = await self.stub.CreateChatAssistant(request)
+        return response
+
+    async def list_chat_assistants(
+        self,
+        page: int = 1,
+        page_size: int = 30,
+        orderby: str = "create_time",
+        desc: bool = True,
+        name: Optional[str] = None,
+        chat_id: Optional[str] = None,
+    ) -> ragflow_pb2.ListChatAssistantsResponse:
+        """List chat assistants with pagination and filtering."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.ListChatAssistantsRequest(
+            page=page, page_size=page_size, orderby=orderby, desc=desc
+        )
+        if name:
+            request.name = name
+        if chat_id:
+            request.id = chat_id
+
+        response = await self.stub.ListChatAssistants(request)
+        return response
+
+    async def update_chat_assistant(
+        self,
+        chat_id: str,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        avatar: Optional[str] = None,
+        dataset_ids: Optional[List[str]] = None,
+        llm_model: Optional[str] = None,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        presence_penalty: Optional[float] = None,
+        frequency_penalty: Optional[float] = None,
+        prompt: Optional[str] = None,
+        similarity_threshold: Optional[float] = None,
+        keywords_similarity_weight: Optional[float] = None,
+        top_n: Optional[int] = None,
+    ) -> ragflow_pb2.StatusResponse:
+        """Update chat assistant configuration."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.UpdateChatAssistantRequest(chat_id=chat_id)
+
+        if name:
+            request.name = name
+        if description:
+            request.description = description
+        if avatar:
+            request.avatar = avatar
+        if dataset_ids:
+            request.dataset_ids.extend(dataset_ids)
+        if llm_model:
+            request.llm_model = llm_model
+        if temperature is not None:
+            request.temperature = temperature
+        if top_p is not None:
+            request.top_p = top_p
+        if presence_penalty is not None:
+            request.presence_penalty = presence_penalty
+        if frequency_penalty is not None:
+            request.frequency_penalty = frequency_penalty
+        if prompt:
+            request.prompt = prompt
+        if similarity_threshold is not None:
+            request.similarity_threshold = similarity_threshold
+        if keywords_similarity_weight is not None:
+            request.keywords_similarity_weight = keywords_similarity_weight
+        if top_n is not None:
+            request.top_n = top_n
+
+        response = await self.stub.UpdateChatAssistant(request)
+        return response
+
+    async def delete_chat_assistants(
+        self, assistant_ids: Optional[List[str]] = None
+    ) -> ragflow_pb2.StatusResponse:
+        """Delete chat assistants by IDs. If None, deletes all assistants."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.DeleteChatAssistantsRequest()
+        if assistant_ids:
+            request.ids.extend(assistant_ids)
+
+        response = await self.stub.DeleteChatAssistants(request)
         return response
 
     # Chat methods
@@ -261,8 +393,8 @@ class RagFlowSyncClient:
         page_size: int = 30,
         orderby: str = "create_time",
         desc: bool = True,
-        name: str | None = None,
-        dataset_id: str | None = None,
+        name: Optional[str] = None,
+        dataset_id: Optional[str] = None,
     ) -> ragflow_pb2.ListDatasetsResponse:
         """List datasets (sync)."""
         return asyncio.run(
@@ -274,11 +406,11 @@ class RagFlowSyncClient:
     def update_dataset(
         self,
         dataset_id: str,
-        name: str | None = None,
-        description: str | None = None,
-        embedding_model: str | None = None,
-        permission: str | None = None,
-        chunk_method: str | None = None,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        embedding_model: Optional[str] = None,
+        permission: Optional[str] = None,
+        chunk_method: Optional[str] = None,
     ) -> ragflow_pb2.StatusResponse:
         """Update dataset (sync)."""
         return asyncio.run(
@@ -294,7 +426,7 @@ class RagFlowSyncClient:
         )
 
     def delete_datasets(
-        self, dataset_ids: list[str] | None = None
+        self, dataset_ids: Optional[List[str]] = None
     ) -> ragflow_pb2.StatusResponse:
         """Delete datasets (sync)."""
         return asyncio.run(self._run_async_method("delete_datasets", dataset_ids))
@@ -315,9 +447,9 @@ class RagFlowSyncClient:
         page_size: int = 30,
         orderby: str = "create_time",
         desc: bool = True,
-        keywords: str | None = None,
-        document_id: str | None = None,
-        name: str | None = None,
+        keywords: Optional[str] = None,
+        document_id: Optional[str] = None,
+        name: Optional[str] = None,
     ) -> ragflow_pb2.ListDocumentsResponse:
         """List documents (sync)."""
         return asyncio.run(
@@ -338,9 +470,9 @@ class RagFlowSyncClient:
         self,
         dataset_id: str,
         document_id: str,
-        name: str | None = None,
-        chunk_method: str | None = None,
-        parser_config: dict | None = None,
+        name: Optional[str] = None,
+        chunk_method: Optional[str] = None,
+        parser_config: Optional[dict] = None,
     ) -> ragflow_pb2.StatusResponse:
         """Update document (sync)."""
         return asyncio.run(
@@ -363,7 +495,7 @@ class RagFlowSyncClient:
         )
 
     def delete_documents(
-        self, dataset_id: str, document_ids: list[str] | None = None
+        self, dataset_id: str, document_ids: Optional[List[str]] = None
     ) -> ragflow_pb2.StatusResponse:
         """Delete documents (sync)."""
         return asyncio.run(
@@ -371,11 +503,110 @@ class RagFlowSyncClient:
         )
 
     def parse_documents(
-        self, dataset_id: str, document_ids: list[str]
+        self, dataset_id: str, document_ids: List[str]
     ) -> ragflow_pb2.StatusResponse:
         """Parse documents (sync)."""
         return asyncio.run(
             self._run_async_method("parse_documents", dataset_id, document_ids)
+        )
+
+    # Chat Assistant Management methods
+    def create_chat_assistant(
+        self,
+        name: str,
+        description: str = "",
+        avatar: str = "",
+        dataset_ids: Optional[List[str]] = None,
+        llm_model: str = "default",
+        temperature: float = 0.1,
+        top_p: float = 0.3,
+        presence_penalty: float = 0.4,
+        frequency_penalty: float = 0.7,
+        prompt: str = "You are a helpful assistant.",
+        similarity_threshold: float = 0.2,
+        keywords_similarity_weight: float = 0.7,
+        top_n: int = 6,
+    ) -> ragflow_pb2.CreateChatAssistantResponse:
+        """Create chat assistant (sync)."""
+        return asyncio.run(
+            self._run_async_method(
+                "create_chat_assistant",
+                name,
+                description,
+                avatar,
+                dataset_ids,
+                llm_model,
+                temperature,
+                top_p,
+                presence_penalty,
+                frequency_penalty,
+                prompt,
+                similarity_threshold,
+                keywords_similarity_weight,
+                top_n,
+            )
+        )
+
+    def list_chat_assistants(
+        self,
+        page: int = 1,
+        page_size: int = 30,
+        orderby: str = "create_time",
+        desc: bool = True,
+        name: Optional[str] = None,
+        chat_id: Optional[str] = None,
+    ) -> ragflow_pb2.ListChatAssistantsResponse:
+        """List chat assistants (sync)."""
+        return asyncio.run(
+            self._run_async_method(
+                "list_chat_assistants", page, page_size, orderby, desc, name, chat_id
+            )
+        )
+
+    def update_chat_assistant(
+        self,
+        chat_id: str,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        avatar: Optional[str] = None,
+        dataset_ids: Optional[List[str]] = None,
+        llm_model: Optional[str] = None,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        presence_penalty: Optional[float] = None,
+        frequency_penalty: Optional[float] = None,
+        prompt: Optional[str] = None,
+        similarity_threshold: Optional[float] = None,
+        keywords_similarity_weight: Optional[float] = None,
+        top_n: Optional[int] = None,
+    ) -> ragflow_pb2.StatusResponse:
+        """Update chat assistant (sync)."""
+        return asyncio.run(
+            self._run_async_method(
+                "update_chat_assistant",
+                chat_id,
+                name,
+                description,
+                avatar,
+                dataset_ids,
+                llm_model,
+                temperature,
+                top_p,
+                presence_penalty,
+                frequency_penalty,
+                prompt,
+                similarity_threshold,
+                keywords_similarity_weight,
+                top_n,
+            )
+        )
+
+    def delete_chat_assistants(
+        self, assistant_ids: Optional[List[str]] = None
+    ) -> ragflow_pb2.StatusResponse:
+        """Delete chat assistants (sync)."""
+        return asyncio.run(
+            self._run_async_method("delete_chat_assistants", assistant_ids)
         )
 
     # Chat methods

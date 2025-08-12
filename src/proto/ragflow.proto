@@ -101,7 +101,6 @@ message UpdateDocumentRequest {
   string document_id = 2;
   optional string name = 3;
   optional string chunk_method = 4;
-  // parser_config as JSON string for simplicity
   optional string parser_config = 5;
 }
 
@@ -133,6 +132,84 @@ message UploadDocumentRequest {
   string filename = 3;
 }
 
+// Chat Assistant Management messages
+message ChatAssistant {
+  string id = 1;
+  string name = 2;
+  optional string description = 3;
+  optional string avatar = 4;
+  repeated string dataset_ids = 5;
+  string llm_model = 6;
+  float temperature = 7;
+  float top_p = 8;
+  float presence_penalty = 9;
+  float frequency_penalty = 10;
+  string prompt = 11;
+  float similarity_threshold = 12;
+  float keywords_similarity_weight = 13;
+  int32 top_n = 14;
+  string create_date = 15;
+  string update_date = 16;
+}
+
+message CreateChatAssistantRequest {
+  string name = 1;
+  optional string description = 2;
+  optional string avatar = 3;
+  repeated string dataset_ids = 4;
+  optional string llm_model = 5;
+  optional float temperature = 6;
+  optional float top_p = 7;
+  optional float presence_penalty = 8;
+  optional float frequency_penalty = 9;
+  optional string prompt = 10;
+  optional float similarity_threshold = 11;
+  optional float keywords_similarity_weight = 12;
+  optional int32 top_n = 13;
+}
+
+message CreateChatAssistantResponse {
+  bool status = 1;
+  string message = 2;
+  optional string chat_id = 3;
+}
+
+message ListChatAssistantsRequest {
+  optional int32 page = 1;
+  optional int32 page_size = 2;
+  optional string orderby = 3;
+  optional bool desc = 4;
+  optional string name = 5;
+  optional string id = 6;
+}
+
+message ListChatAssistantsResponse {
+  bool status = 1;
+  string message = 2;
+  repeated ChatAssistant assistants = 3;
+}
+
+message UpdateChatAssistantRequest {
+  string chat_id = 1;
+  optional string name = 2;
+  optional string description = 3;
+  optional string avatar = 4;
+  repeated string dataset_ids = 5;
+  optional string llm_model = 6;
+  optional float temperature = 7;
+  optional float top_p = 8;
+  optional float presence_penalty = 9;
+  optional float frequency_penalty = 10;
+  optional string prompt = 11;
+  optional float similarity_threshold = 12;
+  optional float keywords_similarity_weight = 13;
+  optional int32 top_n = 14;
+}
+
+message DeleteChatAssistantsRequest {
+  repeated string ids = 1; // if empty, deletes all chat assistants
+}
+
 // Chat messages
 message ChatRequest {
   string kb_id = 1;
@@ -152,7 +229,7 @@ service RagServices {
   rpc ListDatasets(ListDatasetsRequest) returns (ListDatasetsResponse);
   rpc UpdateDataset(UpdateDatasetRequest) returns (StatusResponse);
   rpc DeleteDatasets(DeleteDatasetsRequest) returns (StatusResponse);
-
+  
   // Document Management
   rpc UploadDocument(UploadDocumentRequest) returns (StatusResponse);
   rpc ListDocuments(ListDocumentsRequest) returns (ListDocumentsResponse);
@@ -160,7 +237,13 @@ service RagServices {
   rpc DownloadDocument(DownloadDocumentRequest) returns (DownloadDocumentResponse);
   rpc DeleteDocuments(DeleteDocumentsRequest) returns (StatusResponse);
   rpc ParseDocuments(ParseDocumentsRequest) returns (StatusResponse);
-
+  
+  // Chat Assistant Management
+  rpc CreateChatAssistant(CreateChatAssistantRequest) returns (CreateChatAssistantResponse);
+  rpc ListChatAssistants(ListChatAssistantsRequest) returns (ListChatAssistantsResponse);
+  rpc UpdateChatAssistant(UpdateChatAssistantRequest) returns (StatusResponse);
+  rpc DeleteChatAssistants(DeleteChatAssistantsRequest) returns (StatusResponse);
+  
   // Chat
   rpc Chat(ChatRequest) returns (ChatResponse);
 }

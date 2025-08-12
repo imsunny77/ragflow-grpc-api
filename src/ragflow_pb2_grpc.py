@@ -85,6 +85,26 @@ class RagServicesStub(object):
                 request_serializer=ragflow__pb2.ParseDocumentsRequest.SerializeToString,
                 response_deserializer=ragflow__pb2.StatusResponse.FromString,
                 _registered_method=True)
+        self.CreateChatAssistant = channel.unary_unary(
+                '/ragflow.RagServices/CreateChatAssistant',
+                request_serializer=ragflow__pb2.CreateChatAssistantRequest.SerializeToString,
+                response_deserializer=ragflow__pb2.CreateChatAssistantResponse.FromString,
+                _registered_method=True)
+        self.ListChatAssistants = channel.unary_unary(
+                '/ragflow.RagServices/ListChatAssistants',
+                request_serializer=ragflow__pb2.ListChatAssistantsRequest.SerializeToString,
+                response_deserializer=ragflow__pb2.ListChatAssistantsResponse.FromString,
+                _registered_method=True)
+        self.UpdateChatAssistant = channel.unary_unary(
+                '/ragflow.RagServices/UpdateChatAssistant',
+                request_serializer=ragflow__pb2.UpdateChatAssistantRequest.SerializeToString,
+                response_deserializer=ragflow__pb2.StatusResponse.FromString,
+                _registered_method=True)
+        self.DeleteChatAssistants = channel.unary_unary(
+                '/ragflow.RagServices/DeleteChatAssistants',
+                request_serializer=ragflow__pb2.DeleteChatAssistantsRequest.SerializeToString,
+                response_deserializer=ragflow__pb2.StatusResponse.FromString,
+                _registered_method=True)
         self.Chat = channel.unary_unary(
                 '/ragflow.RagServices/Chat',
                 request_serializer=ragflow__pb2.ChatRequest.SerializeToString,
@@ -158,6 +178,31 @@ class RagServicesServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def CreateChatAssistant(self, request, context):
+        """Chat Assistant Management
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListChatAssistants(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpdateChatAssistant(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteChatAssistants(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def Chat(self, request, context):
         """Chat
         """
@@ -216,6 +261,26 @@ def add_RagServicesServicer_to_server(servicer, server):
             'ParseDocuments': grpc.unary_unary_rpc_method_handler(
                     servicer.ParseDocuments,
                     request_deserializer=ragflow__pb2.ParseDocumentsRequest.FromString,
+                    response_serializer=ragflow__pb2.StatusResponse.SerializeToString,
+            ),
+            'CreateChatAssistant': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateChatAssistant,
+                    request_deserializer=ragflow__pb2.CreateChatAssistantRequest.FromString,
+                    response_serializer=ragflow__pb2.CreateChatAssistantResponse.SerializeToString,
+            ),
+            'ListChatAssistants': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListChatAssistants,
+                    request_deserializer=ragflow__pb2.ListChatAssistantsRequest.FromString,
+                    response_serializer=ragflow__pb2.ListChatAssistantsResponse.SerializeToString,
+            ),
+            'UpdateChatAssistant': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateChatAssistant,
+                    request_deserializer=ragflow__pb2.UpdateChatAssistantRequest.FromString,
+                    response_serializer=ragflow__pb2.StatusResponse.SerializeToString,
+            ),
+            'DeleteChatAssistants': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteChatAssistants,
+                    request_deserializer=ragflow__pb2.DeleteChatAssistantsRequest.FromString,
                     response_serializer=ragflow__pb2.StatusResponse.SerializeToString,
             ),
             'Chat': grpc.unary_unary_rpc_method_handler(
@@ -494,6 +559,114 @@ class RagServices(object):
             target,
             '/ragflow.RagServices/ParseDocuments',
             ragflow__pb2.ParseDocumentsRequest.SerializeToString,
+            ragflow__pb2.StatusResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateChatAssistant(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/ragflow.RagServices/CreateChatAssistant',
+            ragflow__pb2.CreateChatAssistantRequest.SerializeToString,
+            ragflow__pb2.CreateChatAssistantResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListChatAssistants(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/ragflow.RagServices/ListChatAssistants',
+            ragflow__pb2.ListChatAssistantsRequest.SerializeToString,
+            ragflow__pb2.ListChatAssistantsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpdateChatAssistant(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/ragflow.RagServices/UpdateChatAssistant',
+            ragflow__pb2.UpdateChatAssistantRequest.SerializeToString,
+            ragflow__pb2.StatusResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteChatAssistants(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/ragflow.RagServices/DeleteChatAssistants',
+            ragflow__pb2.DeleteChatAssistantsRequest.SerializeToString,
             ragflow__pb2.StatusResponse.FromString,
             options,
             channel_credentials,
