@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # Minimal RAGFlow setup (simplified)
@@ -22,7 +22,7 @@ services:
       - "50051:50051"
     environment:
       - RAGFLOW_BASE_URL=http://ragflow:9380
-      - RAGFLOW_API_TOKEN=${RAGFLOW_API_TOKEN:ragflow-EzMDhhMWIyNzI5YTExZjA5ZTUwNDIwMT}
+      - RAGFLOW_API_TOKEN=${RAGFLOW_API_TOKEN:-ragflow-EzMDhhMWIyNzI5YTExZjA5ZTUwNDIwMT}
     depends_on:
       - ragflow
     restart: unless-stopped
@@ -34,7 +34,7 @@ services:
     command: ["uv", "run", "pytest", "tests/", "-v"]
     environment:
       - RAGFLOW_BASE_URL=http://ragflow:9380
-      - RAGFLOW_API_TOKEN=${RAGFLOW_API_TOKEN:ragflow-EzMDhhMWIyNzI5YTExZjA5ZTUwNDIwMT}
+      - RAGFLOW_API_TOKEN=${RAGFLOW_API_TOKEN:-ragflow-EzMDhhMWIyNzI5YTExZjA5ZTUwNDIwMT}
     depends_on:
       - grpc-server
     profiles:
