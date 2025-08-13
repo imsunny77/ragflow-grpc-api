@@ -612,6 +612,117 @@ class RAGFlowClient:
         except Exception as e:
             return {"status": False, "data": {}, "error": str(e)}
 
+    # Retrieval/Search Methods
+    async def search_documents(
+        self,
+        dataset_id: str,
+        query: str,
+        top_k: int = 10,
+        similarity_threshold: float = 0.7,
+        filter_criteria: Optional[str] = None,
+        include_content: bool = False,
+    ) -> Dict[str, Any]:
+        """Search documents using semantic search."""
+        try:
+            search_data = {
+                "query": query,
+                "top_k": top_k,
+                "similarity_threshold": similarity_threshold,
+                "include_content": include_content,
+            }
+            if filter_criteria:
+                search_data["filter"] = filter_criteria
+
+            response = await self.client.post(
+                f"/api/v1/datasets/{dataset_id}/search/documents", json=search_data
+            )
+            data = response.json() if response.status_code == 200 else {}
+            return {"status": response.status_code == 200, "data": data}
+        except httpx.ConnectError:
+            return {
+                "status": False,
+                "data": {},
+                "error": "All connection attempts failed",
+            }
+        except Exception as e:
+            return {"status": False, "data": {}, "error": str(e)}
+
+    async def retrieve_chunks(
+        self,
+        dataset_id: str,
+        query: str,
+        top_k: int = 5,
+        similarity_threshold: float = 0.2,
+        document_id: Optional[str] = None,
+        rerank: bool = True,
+    ) -> Dict[str, Any]:
+        """Retrieve relevant chunks for RAG."""
+        try:
+            retrieve_data = {
+                "query": query,
+                "top_k": top_k,
+                "similarity_threshold": similarity_threshold,
+                "rerank": rerank,
+            }
+            if document_id:
+                retrieve_data["document_id"] = document_id
+
+            response = await self.client.post(
+                f"/api/v1/datasets/{dataset_id}/retrieve", json=retrieve_data
+            )
+            data = response.json() if response.status_code == 200 else {}
+            return {"status": response.status_code == 200, "data": data}
+        except httpx.ConnectError:
+            return {
+                "status": False,
+                "data": {},
+                "error": "All connection attempts failed",
+            }
+        except Exception as e:
+            return {"status": False, "data": {}, "error": str(e)}
+
+    async def similarity_search(
+        self,
+        dataset_id: str,
+        text: Optional[str] = None,
+        embedding: Optional[str] = None,
+        top_k: int = 10,
+        similarity_threshold: float = 0.5,
+        content_type: str = "both",
+    ) -> Dict[str, Any]:
+        """Perform similarity search using embeddings."""
+        try:
+            if not text and not embedding:
+                return {
+                    "status": False,
+                    "data": {},
+                    "error": "Either text or embedding must be provided",
+                }
+
+            search_data = {
+                "top_k": top_k,
+                "similarity_threshold": similarity_threshold,
+                "content_type": content_type,
+            }
+            if text:
+                search_data["text"] = text
+            if embedding:
+                search_data["embedding"] = embedding
+
+            response = await self.client.post(
+                f"/api/v1/datasets/{dataset_id}/search/similarity", json=search_data
+            )
+            data = response.json() if response.status_code == 200 else {}
+            return {"status": response.status_code == 200, "data": data}
+        except httpx.ConnectError:
+            return {
+                "status": False,
+                "data": {},
+                "error": "All connection attempts failed",
+            }
+        except Exception as e:
+            return {"status": False, "data": {}, "error": str(e)}
+
     # Chat Methods
     async def chat(self, kb_id: str, question: str) -> Dict[str, Any]:
         """Chat with knowledge base."""

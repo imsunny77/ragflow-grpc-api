@@ -325,7 +325,64 @@ message DeleteChunksRequest {
   repeated string ids = 2; // if empty, deletes all chunks in dataset
 }
 
-// Chat messages
+// Retrieval/Search messages
+message SearchDocumentsRequest {
+  string dataset_id = 1;
+  string query = 2;
+  optional int32 top_k = 3; // default: 10
+  optional float similarity_threshold = 4; // default: 0.7
+  optional string filter = 5; // JSON filter criteria
+  optional bool include_content = 6; // default: false
+}
+
+message SearchResult {
+  string id = 1;
+  string type = 2; // "document" or "chunk"
+  string title = 3;
+  optional string content = 4;
+  float similarity_score = 5;
+  optional string metadata = 6; // JSON string
+  string dataset_id = 7;
+  optional string document_id = 8; // for chunks
+}
+
+message SearchDocumentsResponse {
+  bool status = 1;
+  string message = 2;
+  repeated SearchResult results = 3;
+  optional int32 total = 4;
+}
+
+message RetrieveChunksRequest {
+  string dataset_id = 1;
+  string query = 2;
+  optional int32 top_k = 3; // default: 5
+  optional float similarity_threshold = 4; // default: 0.2
+  optional string document_id = 5; // filter by specific document
+  optional bool rerank = 6; // default: true
+}
+
+message RetrieveChunksResponse {
+  bool status = 1;
+  string message = 2;
+  repeated SearchResult chunks = 3;
+  optional string query_embedding = 4; // base64 encoded vector
+}
+
+message SimilaritySearchRequest {
+  string dataset_id = 1;
+  optional string text = 2; // search by text
+  optional string embedding = 3; // or by embedding vector (base64)
+  optional int32 top_k = 4; // default: 10
+  optional float similarity_threshold = 5; // default: 0.5
+  optional string content_type = 6; // "document", "chunk", or "both"
+}
+
+message SimilaritySearchResponse {
+  bool status = 1;
+  string message = 2;
+  repeated SearchResult results = 3;
+}
 message ChatRequest {
   string kb_id = 1;
   string question = 2;
@@ -352,6 +409,11 @@ service RagServices {
   rpc DownloadDocument(DownloadDocumentRequest) returns (DownloadDocumentResponse);
   rpc DeleteDocuments(DeleteDocumentsRequest) returns (StatusResponse);
   rpc ParseDocuments(ParseDocumentsRequest) returns (StatusResponse);
+  
+  // Retrieval/Search
+  rpc SearchDocuments(SearchDocumentsRequest) returns (SearchDocumentsResponse);
+  rpc RetrieveChunks(RetrieveChunksRequest) returns (RetrieveChunksResponse);
+  rpc SimilaritySearch(SimilaritySearchRequest) returns (SimilaritySearchResponse);
   
   // Chat Assistant Management
   rpc CreateChatAssistant(CreateChatAssistantRequest) returns (CreateChatAssistantResponse);

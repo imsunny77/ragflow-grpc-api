@@ -541,6 +541,156 @@ class RagFlowGRPCClient:
         response = await self.stub.DeleteChunks(request)
         return response
 
+    # Retrieval/Search methods
+    async def search_documents(
+        self,
+        dataset_id: str,
+        query: str,
+        top_k: int = 10,
+        similarity_threshold: float = 0.7,
+        filter_criteria: Optional[str] = None,
+        include_content: bool = False,
+    ) -> ragflow_pb2.SearchDocumentsResponse:
+        """Search documents using semantic search."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.SearchDocumentsRequest(
+            dataset_id=dataset_id,
+            query=query,
+            top_k=top_k,
+            similarity_threshold=similarity_threshold,
+            include_content=include_content,
+        )
+        if filter_criteria:
+            request.filter = filter_criteria
+
+        response = await self.stub.SearchDocuments(request)
+        return response
+
+    async def retrieve_chunks(
+        self,
+        dataset_id: str,
+        query: str,
+        top_k: int = 5,
+        similarity_threshold: float = 0.2,
+        document_id: Optional[str] = None,
+        rerank: bool = True,
+    ) -> ragflow_pb2.RetrieveChunksResponse:
+        """Retrieve relevant chunks for RAG."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.RetrieveChunksRequest(
+            dataset_id=dataset_id,
+            query=query,
+            top_k=top_k,
+            similarity_threshold=similarity_threshold,
+            rerank=rerank,
+        )
+        if document_id:
+            request.document_id = document_id
+
+        response = await self.stub.RetrieveChunks(request)
+        return response
+
+    async def similarity_search(
+        self,
+        dataset_id: str,
+        text: Optional[str] = None,
+        embedding: Optional[str] = None,
+        top_k: int = 10,
+        similarity_threshold: float = 0.5,
+        content_type: str = "both",
+    ) -> ragflow_pb2.SimilaritySearchResponse:
+        """Perform similarity search using embeddings."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        if not text and not embedding:
+            raise ValueError("Either text or embedding must be provided")
+
+        request = ragflow_pb2.SimilaritySearchRequest(
+            dataset_id=dataset_id,
+            top_k=top_k,
+            similarity_threshold=similarity_threshold,
+            content_type=content_type,
+        )
+        if text:
+            request.text = text
+        if embedding:
+            request.embedding = embedding
+
+        response = await self.stub.SimilaritySearch(request)
+        return response
+
+    # Retrieval/Search methods
+    def search_documents(
+        self,
+        dataset_id: str,
+        query: str,
+        top_k: int = 10,
+        similarity_threshold: float = 0.7,
+        filter_criteria: Optional[str] = None,
+        include_content: bool = False,
+    ) -> ragflow_pb2.SearchDocumentsResponse:
+        """Search documents (sync)."""
+        return asyncio.run(
+            self._run_async_method(
+                "search_documents",
+                dataset_id,
+                query,
+                top_k,
+                similarity_threshold,
+                filter_criteria,
+                include_content,
+            )
+        )
+
+    def retrieve_chunks(
+        self,
+        dataset_id: str,
+        query: str,
+        top_k: int = 5,
+        similarity_threshold: float = 0.2,
+        document_id: Optional[str] = None,
+        rerank: bool = True,
+    ) -> ragflow_pb2.RetrieveChunksResponse:
+        """Retrieve chunks (sync)."""
+        return asyncio.run(
+            self._run_async_method(
+                "retrieve_chunks",
+                dataset_id,
+                query,
+                top_k,
+                similarity_threshold,
+                document_id,
+                rerank,
+            )
+        )
+
+    def similarity_search(
+        self,
+        dataset_id: str,
+        text: Optional[str] = None,
+        embedding: Optional[str] = None,
+        top_k: int = 10,
+        similarity_threshold: float = 0.5,
+        content_type: str = "both",
+    ) -> ragflow_pb2.SimilaritySearchResponse:
+        """Similarity search (sync)."""
+        return asyncio.run(
+            self._run_async_method(
+                "similarity_search",
+                dataset_id,
+                text,
+                embedding,
+                top_k,
+                similarity_threshold,
+                content_type,
+            )
+        )
+
     # Chat methods
     async def chat(self, kb_id: str, question: str) -> ragflow_pb2.ChatResponse:
         """Chat with knowledge base."""

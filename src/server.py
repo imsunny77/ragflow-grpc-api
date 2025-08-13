@@ -826,6 +826,169 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
             logger.error(f"Error deleting chunks: {e}")
             return ragflow_pb2.StatusResponse(status=False, message=str(e))
 
+    # Retrieval/Search Methods
+    async def SearchDocuments(
+        self,
+        request: ragflow_pb2.SearchDocumentsRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.SearchDocumentsResponse:
+        """Search documents using semantic search."""
+        try:
+            result = await self.ragflow_client.search_documents(
+                dataset_id=request.dataset_id,
+                query=request.query,
+                top_k=request.top_k if request.HasField("top_k") else 10,
+                similarity_threshold=(
+                    request.similarity_threshold
+                    if request.HasField("similarity_threshold")
+                    else 0.7
+                ),
+                filter_criteria=request.filter or None,
+                include_content=(
+                    request.include_content
+                    if request.HasField("include_content")
+                    else False
+                ),
+            )
+
+            search_results = []
+            total = 0
+            if result["status"] and result.get("data"):
+                search_data = result["data"]
+                total = search_data.get("total", 0)
+                results_list = search_data.get("results", [])
+
+                for result_info in results_list:
+                    search_result = ragflow_pb2.SearchResult(
+                        id=result_info.get("id", ""),
+                        type=result_info.get("type", "document"),
+                        title=result_info.get("title", ""),
+                        content=result_info.get("content") or "",
+                        similarity_score=result_info.get("similarity_score", 0.0),
+                        metadata=result_info.get("metadata") or "",
+                        dataset_id=result_info.get("dataset_id", ""),
+                        document_id=result_info.get("document_id") or "",
+                    )
+                    search_results.append(search_result)
+
+            return ragflow_pb2.SearchDocumentsResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+                results=search_results,
+                total=total,
+            )
+        except Exception as e:
+            logger.error(f"Error searching documents: {e}")
+            return ragflow_pb2.SearchDocumentsResponse(
+                status=False, message=str(e), results=[], total=0
+            )
+
+    async def RetrieveChunks(
+        self,
+        request: ragflow_pb2.RetrieveChunksRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.RetrieveChunksResponse:
+        """Retrieve relevant chunks for RAG."""
+        try:
+            result = await self.ragflow_client.retrieve_chunks(
+                dataset_id=request.dataset_id,
+                query=request.query,
+                top_k=request.top_k if request.HasField("top_k") else 5,
+                similarity_threshold=(
+                    request.similarity_threshold
+                    if request.HasField("similarity_threshold")
+                    else 0.2
+                ),
+                document_id=request.document_id or None,
+                rerank=request.rerank if request.HasField("rerank") else True,
+            )
+
+            chunks = []
+            query_embedding = ""
+            if result["status"] and result.get("data"):
+                chunk_data = result["data"]
+                chunks_list = chunk_data.get("chunks", [])
+                query_embedding = chunk_data.get("query_embedding", "")
+
+                for chunk_info in chunks_list:
+                    chunk_result = ragflow_pb2.SearchResult(
+                        id=chunk_info.get("id", ""),
+                        type="chunk",
+                        title=chunk_info.get("title", ""),
+                        content=chunk_info.get("content", ""),
+                        similarity_score=chunk_info.get("similarity_score", 0.0),
+                        metadata=chunk_info.get("metadata") or "",
+                        dataset_id=chunk_info.get("dataset_id", ""),
+                        document_id=chunk_info.get("document_id", ""),
+                    )
+                    chunks.append(chunk_result)
+
+            return ragflow_pb2.RetrieveChunksResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+                chunks=chunks,
+                query_embedding=query_embedding,
+            )
+        except Exception as e:
+            logger.error(f"Error retrieving chunks: {e}")
+            return ragflow_pb2.RetrieveChunksResponse(
+                status=False, message=str(e), chunks=[], query_embedding=""
+            )
+
+    async def SimilaritySearch(
+        self,
+        request: ragflow_pb2.SimilaritySearchRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.SimilaritySearchResponse:
+        """Perform similarity search using embeddings."""
+        try:
+            result = await self.ragflow_client.similarity_search(
+                dataset_id=request.dataset_id,
+                text=request.text or None,
+                embedding=request.embedding or None,
+                top_k=request.top_k if request.HasField("top_k") else 10,
+                similarity_threshold=(
+                    request.similarity_threshold
+                    if request.HasField("similarity_threshold")
+                    else 0.5
+                ),
+                content_type=request.content_type or "both",
+            )
+
+            search_results = []
+            if result["status"] and result.get("data"):
+                results_list = result["data"].get("results", [])
+
+                for result_info in results_list:
+                    search_result = ragflow_pb2.SearchResult(
+                        id=result_info.get("id", ""),
+                        type=result_info.get("type", "document"),
+                        title=result_info.get("title", ""),
+                        content=result_info.get("content") or "",
+                        similarity_score=result_info.get("similarity_score", 0.0),
+                        metadata=result_info.get("metadata") or "",
+                        dataset_id=result_info.get("dataset_id", ""),
+                        document_id=result_info.get("document_id") or "",
+                    )
+                    search_results.append(search_result)
+
+            return ragflow_pb2.SimilaritySearchResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+                results=search_results,
+            )
+        except Exception as e:
+            logger.error(f"Error in similarity search: {e}")
+            return ragflow_pb2.SimilaritySearchResponse(
+                status=False, message=str(e), results=[]
+            )
+
     # Chat Methods
     async def Chat(
         self, request: ragflow_pb2.ChatRequest, context: grpc.aio.ServicerContext
