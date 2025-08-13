@@ -71,7 +71,7 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
                 page=request.page or 1,
                 page_size=request.page_size or 30,
                 orderby=request.orderby or "create_time",
-                desc=request.desc if request.HasField("desc") else True,
+                desc=request.desc,
                 name=request.name or None,
                 dataset_id=request.id or None,
             )
@@ -193,7 +193,7 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
                 page=request.page or 1,
                 page_size=request.page_size or 30,
                 orderby=request.orderby or "create_time",
-                desc=request.desc if request.HasField("desc") else True,
+                desc=request.desc,
                 keywords=request.keywords or None,
                 document_id=request.id or None,
                 name=request.name or None,
@@ -362,17 +362,17 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
                 "llm": {
                     "model_name": request.llm_model or "default",
                     "temperature": (
-                        request.temperature if request.HasField("temperature") else 0.1
+                        request.temperature
                     ),
-                    "top_p": request.top_p if request.HasField("top_p") else 0.3,
+                    "top_p": request.top_p,
                     "presence_penalty": (
                         request.presence_penalty
-                        if request.HasField("presence_penalty")
+                        if request.presence_penalty != 0.0
                         else 0.4
                     ),
                     "frequency_penalty": (
                         request.frequency_penalty
-                        if request.HasField("frequency_penalty")
+                        if request.frequency_penalty != 0.0
                         else 0.7
                     ),
                 },
@@ -380,15 +380,15 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
                     "prompt": request.prompt or "You are a helpful assistant.",
                     "similarity_threshold": (
                         request.similarity_threshold
-                        if request.HasField("similarity_threshold")
+                        if request.similarity_threshold != 0.0
                         else 0.2
                     ),
                     "keywords_similarity_weight": (
                         request.keywords_similarity_weight
-                        if request.HasField("keywords_similarity_weight")
+                        if request.keywords_similarity_weight != 0.0
                         else 0.7
                     ),
-                    "top_n": request.top_n if request.HasField("top_n") else 6,
+                    "top_n": request.top_n,
                 },
             }
 
@@ -422,7 +422,7 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
                 page=request.page or 1,
                 page_size=request.page_size or 30,
                 orderby=request.orderby or "create_time",
-                desc=request.desc if request.HasField("desc") else True,
+                desc=request.desc,
                 name=request.name or None,
                 chat_id=request.id or None,
             )
@@ -498,13 +498,13 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
             llm_config = {}
             if request.llm_model:
                 llm_config["model_name"] = request.llm_model
-            if request.HasField("temperature"):
+            if request.temperature != 0.0:
                 llm_config["temperature"] = request.temperature
-            if request.HasField("top_p"):
+            if request.top_p != 0.0:
                 llm_config["top_p"] = request.top_p
-            if request.HasField("presence_penalty"):
+            if request.presence_penalty != 0.0:
                 llm_config["presence_penalty"] = request.presence_penalty
-            if request.HasField("frequency_penalty"):
+            if request.frequency_penalty != 0.0:
                 llm_config["frequency_penalty"] = request.frequency_penalty
 
             if llm_config:
@@ -514,13 +514,13 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
             prompt_config = {}
             if request.prompt:
                 prompt_config["prompt"] = request.prompt
-            if request.HasField("similarity_threshold"):
+            if request.similarity_threshold != 0.0:
                 prompt_config["similarity_threshold"] = request.similarity_threshold
-            if request.HasField("keywords_similarity_weight"):
+            if request.keywords_similarity_weight != 0.0:
                 prompt_config["keywords_similarity_weight"] = (
                     request.keywords_similarity_weight
                 )
-            if request.HasField("top_n"):
+            if request.top_n != 0:
                 prompt_config["top_n"] = request.top_n
 
             if prompt_config:
@@ -600,7 +600,7 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
                 page=request.page or 1,
                 page_size=request.page_size or 30,
                 orderby=request.orderby or "create_time",
-                desc=request.desc if request.HasField("desc") else True,
+                desc=request.desc,
                 name=request.name or None,
                 session_id=request.id or None,
                 user_id=request.user_id or None,
@@ -703,7 +703,7 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
                 document_id=request.document_id,
                 content=request.content,
                 metadata=request.metadata or None,
-                position=request.position if request.HasField("position") else None,
+                position=request.position if request.position != 0 else None,
             )
             chunk_id = ""
             if result["status"] and result.get("data"):
@@ -735,7 +735,7 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
                 page=request.page or 1,
                 page_size=request.page_size or 30,
                 orderby=request.orderby or "create_time",
-                desc=request.desc if request.HasField("desc") else True,
+                desc=request.desc,
                 keywords=request.keywords or None,
                 chunk_id=request.id or None,
             )
@@ -787,7 +787,7 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
                 update_data["content"] = request.content
             if request.metadata:
                 update_data["metadata"] = request.metadata
-            if request.HasField("position"):
+            if request.position != 0:
                 update_data["position"] = request.position
 
             result = await self.ragflow_client.update_chunk(
@@ -850,23 +850,23 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
                 "messages": messages,
                 "model": request.model or "ragflow-default",
                 "temperature": (
-                    request.temperature if request.HasField("temperature") else 0.7
+                    request.temperature
                 ),
                 "max_tokens": (
-                    request.max_tokens if request.HasField("max_tokens") else 1000
+                    request.max_tokens
                 ),
-                "top_p": request.top_p if request.HasField("top_p") else 1.0,
+                "top_p": request.top_p,
                 "frequency_penalty": (
                     request.frequency_penalty
-                    if request.HasField("frequency_penalty")
+                    if request.frequency_penalty != 0.0
                     else 0.0
                 ),
                 "presence_penalty": (
                     request.presence_penalty
-                    if request.HasField("presence_penalty")
+                    if request.presence_penalty != 0.0
                     else 0.0
                 ),
-                "stream": request.stream if request.HasField("stream") else False,
+                "stream": request.stream,
                 "user": request.user if request.user else None,
             }
 
@@ -952,7 +952,7 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
         try:
             # Extract input text(s)
             texts = []
-            if request.HasField("text"):
+            if request.text:
                 texts = [request.text]
             elif request.texts:
                 texts = list(request.texts)
@@ -1065,16 +1065,16 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
             result = await self.ragflow_client.search_documents(
                 dataset_id=request.dataset_id,
                 query=request.query,
-                top_k=request.top_k if request.HasField("top_k") else 10,
+                top_k=request.top_k,
                 similarity_threshold=(
                     request.similarity_threshold
-                    if request.HasField("similarity_threshold")
+                    if request.similarity_threshold != 0.0
                     else 0.7
                 ),
                 filter_criteria=request.filter or None,
                 include_content=(
                     request.include_content
-                    if request.HasField("include_content")
+                    if request.include_content
                     else False
                 ),
             )
@@ -1123,14 +1123,14 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
             result = await self.ragflow_client.retrieve_chunks(
                 dataset_id=request.dataset_id,
                 query=request.query,
-                top_k=request.top_k if request.HasField("top_k") else 5,
+                top_k=request.top_k,
                 similarity_threshold=(
                     request.similarity_threshold
-                    if request.HasField("similarity_threshold")
+                    if request.similarity_threshold != 0.0
                     else 0.2
                 ),
                 document_id=request.document_id or None,
-                rerank=request.rerank if request.HasField("rerank") else True,
+                rerank=request.rerank,
             )
 
             chunks = []
@@ -1178,10 +1178,10 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
                 dataset_id=request.dataset_id,
                 text=request.text or None,
                 embedding=request.embedding or None,
-                top_k=request.top_k if request.HasField("top_k") else 10,
+                top_k=request.top_k,
                 similarity_threshold=(
                     request.similarity_threshold
-                    if request.HasField("similarity_threshold")
+                    if request.similarity_threshold != 0.0
                     else 0.5
                 ),
                 content_type=request.content_type or "both",

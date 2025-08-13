@@ -1,7 +1,7 @@
 """Tests for OpenAI Compatible APIs functionality."""
 
 import pytest
-from client import RagFlowGRPCClient
+from src.client import RagFlowGRPCClient
 
 
 @pytest.mark.asyncio

@@ -145,7 +145,7 @@ class TestRagServicesServicer:
             page=1,
             page_size=5,
             orderby="create_time",
-            desc=True,
+            desc=False,
             name="Python",
             dataset_id="specific_id",
         )

@@ -19,7 +19,7 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
         context: grpc.aio.ServicerContext,
     ) -> ragflow_pb2.CreateKnowledgeBaseResponse:
         try:
-            result = await self.ragflow_client.create_dataset(
+            result = await self.ragflow_client.create_knowledge_base(
                 request.name, request.description
             )
             if result.get("status"):

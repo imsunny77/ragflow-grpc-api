@@ -11,11 +11,12 @@ async def test_ragflow() -> None:
     client = RAGFlowClient(config)
 
     # Test dataset creation
-    result = await client.create_dataset("test", "test description")
+    result = await client.create_knowledge_base("test", "test description")
     assert result["status"] is True
 
-    # Test document upload
-    result = await client.upload_document("test_id", "test.txt")
+    # Test document upload (fix: add missing filename parameter and file_data as bytes)
+    test_content = b"This is test file content"
+    result = await client.upload_document("test_id", test_content, "test.txt")
     assert result["status"] is True
 
     # Test chat
