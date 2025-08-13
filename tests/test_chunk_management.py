@@ -19,7 +19,7 @@ async def test_create_chunk():
             position=1,
         )
         assert response.status is True
-        assert "chunk_id" in response
+        assert hasattr(response, "chunk_id")
     finally:
         await client.disconnect()
 

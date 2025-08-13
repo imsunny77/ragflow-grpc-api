@@ -120,7 +120,7 @@ class TestDocumentManagement:
             page=1,
             page_size=5,
             orderby="create_time",
-            desc=True,
+            desc=False,
             keywords="python",
             document_id="doc_specific",
             name="test.txt",
@@ -265,7 +265,7 @@ class TestDocumentManagement:
 
         assert response.status is False
         assert response.message == "File not found"
-        assert not response.HasField("file_data")
+        assert response.file_data == b""
         assert not response.HasField("filename")
 
     # Delete Documents Tests

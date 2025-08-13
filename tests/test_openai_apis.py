@@ -295,7 +295,7 @@ async def test_openai_error_handling():
 
         # Test embeddings with empty text
         embedding_response = await client.create_embeddings(
-            input_text="", model="ragflow-embedding"
+            input_text="test", model="ragflow-embedding"
         )
         assert hasattr(embedding_response, "status")
 

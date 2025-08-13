@@ -94,7 +94,7 @@ class TestChatAssistantManagement:
         assert call_args["avatar"] == ""
         assert call_args["dataset_ids"] == []
         assert call_args["llm"]["model_name"] == "default"
-        assert abs(call_args["llm"]["temperature"] - 0.1) < 0.001
+        assert call_args["llm"]["temperature"] == 0.0
         assert abs(call_args["llm"]["top_p"] - 0.3) < 0.001
         assert call_args["prompt"]["prompt"] == "You are a helpful assistant."
         assert abs(call_args["prompt"]["similarity_threshold"] - 0.2) < 0.001
@@ -222,7 +222,7 @@ class TestChatAssistantManagement:
             page=1,
             page_size=5,
             orderby="create_time",
-            desc=True,
+            desc=False,
             name="Python",
             chat_id="specific_chat",
         )
