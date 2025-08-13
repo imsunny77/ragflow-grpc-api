@@ -6,35 +6,35 @@ package ragflow;
 message StatusResponse {
   bool status = 1;
   string message = 2;
-  optional string data = 3;
+  string data = 3;
 }
 
 // Dataset/Knowledge Base messages
 message CreateKnowledgeBaseRequest {
   string name = 1;
-  optional string description = 2;
+  string description = 2;
 }
 
 message CreateKnowledgeBaseResponse {
   bool status = 1;
   string message = 2;
-  optional string kb_id = 3;
+  string kb_id = 3;
 }
 
 message ListDatasetsRequest {
-  optional int32 page = 1;
-  optional int32 page_size = 2;
-  optional string orderby = 3;
-  optional bool desc = 4;
-  optional string name = 5;
-  optional string id = 6;
+  int32 page = 1;
+  int32 page_size = 2;
+  string orderby = 3;
+  bool desc = 4;
+  string name = 5;
+  string id = 6;
 }
 
 message Dataset {
   string id = 1;
   string name = 2;
-  optional string description = 3;
-  optional string avatar = 4;
+  string description = 3;
+  string avatar = 4;
   string embedding_model = 5;
   string permission = 6;
   string chunk_method = 7;
@@ -52,11 +52,11 @@ message ListDatasetsResponse {
 
 message UpdateDatasetRequest {
   string dataset_id = 1;
-  optional string name = 2;
-  optional string description = 3;
-  optional string embedding_model = 4;
-  optional string permission = 5;
-  optional string chunk_method = 6;
+  string name = 2;
+  string description = 3;
+  string embedding_model = 4;
+  string permission = 5;
+  string chunk_method = 6;
 }
 
 message DeleteDatasetsRequest {
@@ -75,33 +75,33 @@ message Document {
   string status = 8;
   string create_date = 9;
   string update_date = 10;
-  optional string thumbnail = 11;
+  string thumbnail = 11;
 }
 
 message ListDocumentsRequest {
   string dataset_id = 1;
-  optional int32 page = 2;
-  optional int32 page_size = 3;
-  optional string orderby = 4;
-  optional bool desc = 5;
-  optional string keywords = 6;
-  optional string id = 7;
-  optional string name = 8;
+  int32 page = 2;
+  int32 page_size = 3;
+  string orderby = 4;
+  bool desc = 5;
+  string keywords = 6;
+  string id = 7;
+  string name = 8;
 }
 
 message ListDocumentsResponse {
   bool status = 1;
   string message = 2;
   repeated Document documents = 3;
-  optional int32 total = 4;
+  int32 total = 4;
 }
 
 message UpdateDocumentRequest {
   string dataset_id = 1;
   string document_id = 2;
-  optional string name = 3;
-  optional string chunk_method = 4;
-  optional string parser_config = 5;
+  string name = 3;
+  string chunk_method = 4;
+  string parser_config = 5;
 }
 
 message DownloadDocumentRequest {
@@ -112,8 +112,8 @@ message DownloadDocumentRequest {
 message DownloadDocumentResponse {
   bool status = 1;
   string message = 2;
-  optional bytes file_data = 3;
-  optional string filename = 4;
+  bytes file_data = 3;
+  string filename = 4;
 }
 
 message DeleteDocumentsRequest {
@@ -136,8 +136,8 @@ message UploadDocumentRequest {
 message ChatAssistant {
   string id = 1;
   string name = 2;
-  optional string description = 3;
-  optional string avatar = 4;
+  string description = 3;
+  string avatar = 4;
   repeated string dataset_ids = 5;
   string llm_model = 6;
   float temperature = 7;
@@ -154,33 +154,33 @@ message ChatAssistant {
 
 message CreateChatAssistantRequest {
   string name = 1;
-  optional string description = 2;
-  optional string avatar = 3;
+  string description = 2;
+  string avatar = 3;
   repeated string dataset_ids = 4;
-  optional string llm_model = 5;
-  optional float temperature = 6;
-  optional float top_p = 7;
-  optional float presence_penalty = 8;
-  optional float frequency_penalty = 9;
-  optional string prompt = 10;
-  optional float similarity_threshold = 11;
-  optional float keywords_similarity_weight = 12;
-  optional int32 top_n = 13;
+  string llm_model = 5;
+  float temperature = 6;
+  float top_p = 7;
+  float presence_penalty = 8;
+  float frequency_penalty = 9;
+  string prompt = 10;
+  float similarity_threshold = 11;
+  float keywords_similarity_weight = 12;
+  int32 top_n = 13;
 }
 
 message CreateChatAssistantResponse {
   bool status = 1;
   string message = 2;
-  optional string chat_id = 3;
+  string chat_id = 3;
 }
 
 message ListChatAssistantsRequest {
-  optional int32 page = 1;
-  optional int32 page_size = 2;
-  optional string orderby = 3;
-  optional bool desc = 4;
-  optional string name = 5;
-  optional string id = 6;
+  int32 page = 1;
+  int32 page_size = 2;
+  string orderby = 3;
+  bool desc = 4;
+  string name = 5;
+  string id = 6;
 }
 
 message ListChatAssistantsResponse {
@@ -191,19 +191,19 @@ message ListChatAssistantsResponse {
 
 message UpdateChatAssistantRequest {
   string chat_id = 1;
-  optional string name = 2;
-  optional string description = 3;
-  optional string avatar = 4;
+  string name = 2;
+  string description = 3;
+  string avatar = 4;
   repeated string dataset_ids = 5;
-  optional string llm_model = 6;
-  optional float temperature = 7;
-  optional float top_p = 8;
-  optional float presence_penalty = 9;
-  optional float frequency_penalty = 10;
-  optional string prompt = 11;
-  optional float similarity_threshold = 12;
-  optional float keywords_similarity_weight = 13;
-  optional int32 top_n = 14;
+  string llm_model = 6;
+  float temperature = 7;
+  float top_p = 8;
+  float presence_penalty = 9;
+  float frequency_penalty = 10;
+  string prompt = 11;
+  float similarity_threshold = 12;
+  float keywords_similarity_weight = 13;
+  int32 top_n = 14;
 }
 
 message DeleteChatAssistantsRequest {
@@ -220,7 +220,7 @@ message Session {
   string id = 1;
   string chat_id = 2;
   string name = 3;
-  optional string user_id = 4;
+  string user_id = 4;
   repeated ChatMessage messages = 5;
   string create_date = 6;
   string update_date = 7;
@@ -229,24 +229,24 @@ message Session {
 message CreateSessionRequest {
   string chat_id = 1;
   string name = 2;
-  optional string user_id = 3;
+  string user_id = 3;
 }
 
 message CreateSessionResponse {
   bool status = 1;
   string message = 2;
-  optional string session_id = 3;
+  string session_id = 3;
 }
 
 message ListSessionsRequest {
   string chat_id = 1;
-  optional int32 page = 2;
-  optional int32 page_size = 3;
-  optional string orderby = 4;
-  optional bool desc = 5;
-  optional string name = 6;
-  optional string id = 7;
-  optional string user_id = 8;
+  int32 page = 2;
+  int32 page_size = 3;
+  string orderby = 4;
+  bool desc = 5;
+  string name = 6;
+  string id = 7;
+  string user_id = 8;
 }
 
 message ListSessionsResponse {
@@ -258,8 +258,8 @@ message ListSessionsResponse {
 message UpdateSessionRequest {
   string chat_id = 1;
   string session_id = 2;
-  optional string name = 3;
-  optional string user_id = 4;
+  string name = 3;
+  string user_id = 4;
 }
 
 message DeleteSessionsRequest {
@@ -273,7 +273,7 @@ message Chunk {
   string document_id = 2;
   string dataset_id = 3;
   string content = 4;
-  optional string metadata = 5; // JSON string
+  string metadata = 5; // JSON string
   int32 position = 6;
   float similarity_score = 7;
   string create_date = 8;
@@ -284,40 +284,40 @@ message CreateChunkRequest {
   string dataset_id = 1;
   string document_id = 2;
   string content = 3;
-  optional string metadata = 4; // JSON string
-  optional int32 position = 5;
+  string metadata = 4; // JSON string
+  int32 position = 5;
 }
 
 message CreateChunkResponse {
   bool status = 1;
   string message = 2;
-  optional string chunk_id = 3;
+  string chunk_id = 3;
 }
 
 message ListChunksRequest {
   string dataset_id = 1;
-  optional string document_id = 2;
-  optional int32 page = 3;
-  optional int32 page_size = 4;
-  optional string orderby = 5;
-  optional bool desc = 6;
-  optional string keywords = 7;
-  optional string id = 8;
+  string document_id = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  string orderby = 5;
+  bool desc = 6;
+  string keywords = 7;
+  string id = 8;
 }
 
 message ListChunksResponse {
   bool status = 1;
   string message = 2;
   repeated Chunk chunks = 3;
-  optional int32 total = 4;
+  int32 total = 4;
 }
 
 message UpdateChunkRequest {
   string dataset_id = 1;
   string chunk_id = 2;
-  optional string content = 3;
-  optional string metadata = 4; // JSON string
-  optional int32 position = 5;
+  string content = 3;
+  string metadata = 4; // JSON string
+  int32 position = 5;
 }
 
 message DeleteChunksRequest {
@@ -329,20 +329,20 @@ message DeleteChunksRequest {
 message OpenAIChatMessage {
   string role = 1; // "system", "user", "assistant"
   string content = 2;
-  optional string name = 3;
+  string name = 3;
 }
 
 message ChatCompletionsRequest {
   repeated OpenAIChatMessage messages = 1;
-  optional string model = 2; // default: "ragflow-default"
-  optional float temperature = 3; // default: 0.7
-  optional int32 max_tokens = 4; // default: 1000
-  optional float top_p = 5; // default: 1.0
-  optional float frequency_penalty = 6; // default: 0.0
-  optional float presence_penalty = 7; // default: 0.0
-  optional bool stream = 8; // default: false
-  optional string user = 9;
-  optional string dataset_id = 10; // RAGFlow specific: which dataset to use
+  string model = 2; // default: "ragflow-default"
+  float temperature = 3; // default: 0.7
+  int32 max_tokens = 4; // default: 1000
+  float top_p = 5; // default: 1.0
+  float frequency_penalty = 6; // default: 0.0
+  float presence_penalty = 7; // default: 0.0
+  bool stream = 8; // default: false
+  string user = 9;
+  string dataset_id = 10; // RAGFlow specific: which dataset to use
 }
 
 message ChatChoice {
@@ -360,12 +360,12 @@ message ChatUsage {
 message ChatCompletionsResponse {
   bool status = 1;
   string message = 2;
-  optional string id = 3;
-  optional string object = 4; // "chat.completion"
-  optional int64 created = 5; // Unix timestamp
-  optional string model = 6;
+  string id = 3;
+  string object = 4; // "chat.completion"
+  int64 created = 5; // Unix timestamp
+  string model = 6;
   repeated ChatChoice choices = 7;
-  optional ChatUsage usage = 8;
+  ChatUsage usage = 8;
 }
 
 message EmbeddingsRequest {
@@ -373,9 +373,9 @@ message EmbeddingsRequest {
     string text = 1;
     repeated string texts = 2;
   }
-  optional string model = 3; // default: "ragflow-embedding"
-  optional string encoding_format = 4; // "float", "base64"
-  optional string user = 5;
+  string model = 3; // default: "ragflow-embedding"
+  string encoding_format = 4; // "float", "base64"
+  string user = 5;
 }
 
 message EmbeddingData {
@@ -392,10 +392,10 @@ message EmbeddingsUsage {
 message EmbeddingsResponse {
   bool status = 1;
   string message = 2;
-  optional string object = 3; // "list"
+  string object = 3; // "list"
   repeated EmbeddingData data = 4;
-  optional string model = 5;
-  optional EmbeddingsUsage usage = 6;
+  string model = 5;
+  EmbeddingsUsage usage = 6;
 }
 
 message ModelsRequest {
@@ -409,13 +409,13 @@ message ModelInfo {
   string owned_by = 4;
   repeated string permission = 5;
   string root = 6;
-  optional string parent = 7;
+  string parent = 7;
 }
 
 message ModelsResponse {
   bool status = 1;
   string message = 2;
-  optional string object = 3; // "list"
+  string object = 3; // "list"
   repeated ModelInfo data = 4;
 }
 
@@ -423,53 +423,53 @@ message ModelsResponse {
 message SearchDocumentsRequest {
   string dataset_id = 1;
   string query = 2;
-  optional int32 top_k = 3; // default: 10
-  optional float similarity_threshold = 4; // default: 0.7
-  optional string filter = 5; // JSON filter criteria
-  optional bool include_content = 6; // default: false
+  int32 top_k = 3; // default: 10
+  float similarity_threshold = 4; // default: 0.7
+  string filter = 5; // JSON filter criteria
+  bool include_content = 6; // default: false
 }
 
 message SearchResult {
   string id = 1;
   string type = 2; // "document" or "chunk"
   string title = 3;
-  optional string content = 4;
+  string content = 4;
   float similarity_score = 5;
-  optional string metadata = 6; // JSON string
+  string metadata = 6; // JSON string
   string dataset_id = 7;
-  optional string document_id = 8; // for chunks
+  string document_id = 8; // for chunks
 }
 
 message SearchDocumentsResponse {
   bool status = 1;
   string message = 2;
   repeated SearchResult results = 3;
-  optional int32 total = 4;
+  int32 total = 4;
 }
 
 message RetrieveChunksRequest {
   string dataset_id = 1;
   string query = 2;
-  optional int32 top_k = 3; // default: 5
-  optional float similarity_threshold = 4; // default: 0.2
-  optional string document_id = 5; // filter by specific document
-  optional bool rerank = 6; // default: true
+  int32 top_k = 3; // default: 5
+  float similarity_threshold = 4; // default: 0.2
+  string document_id = 5; // filter by specific document
+  bool rerank = 6; // default: true
 }
 
 message RetrieveChunksResponse {
   bool status = 1;
   string message = 2;
   repeated SearchResult chunks = 3;
-  optional string query_embedding = 4; // base64 encoded vector
+  string query_embedding = 4; // base64 encoded vector
 }
 
 message SimilaritySearchRequest {
   string dataset_id = 1;
-  optional string text = 2; // search by text
-  optional string embedding = 3; // or by embedding vector (base64)
-  optional int32 top_k = 4; // default: 10
-  optional float similarity_threshold = 5; // default: 0.5
-  optional string content_type = 6; // "document", "chunk", or "both"
+  string text = 2; // search by text
+  string embedding = 3; // or by embedding vector (base64)
+  int32 top_k = 4; // default: 10
+  float similarity_threshold = 5; // default: 0.5
+  string content_type = 6; // "document", "chunk", or "both"
 }
 
 message SimilaritySearchResponse {
@@ -477,6 +477,8 @@ message SimilaritySearchResponse {
   string message = 2;
   repeated SearchResult results = 3;
 }
+
+// Chat messages
 message ChatRequest {
   string kb_id = 1;
   string question = 2;
@@ -485,7 +487,7 @@ message ChatRequest {
 message ChatResponse {
   bool status = 1;
   string message = 2;
-  optional string answer = 3;
+  string answer = 3;
 }
 
 // gRPC Service Definition
@@ -504,16 +506,6 @@ service RagServices {
   rpc DeleteDocuments(DeleteDocumentsRequest) returns (StatusResponse);
   rpc ParseDocuments(ParseDocumentsRequest) returns (StatusResponse);
   
-  // OpenAI Compatible APIs
-  rpc ChatCompletions(ChatCompletionsRequest) returns (ChatCompletionsResponse);
-  rpc Embeddings(EmbeddingsRequest) returns (EmbeddingsResponse);
-  rpc Models(ModelsRequest) returns (ModelsResponse);
-  
-  // Retrieval/Search
-  rpc SearchDocuments(SearchDocumentsRequest) returns (SearchDocumentsResponse);
-  rpc RetrieveChunks(RetrieveChunksRequest) returns (RetrieveChunksResponse);
-  rpc SimilaritySearch(SimilaritySearchRequest) returns (SimilaritySearchResponse);
-  
   // Chat Assistant Management
   rpc CreateChatAssistant(CreateChatAssistantRequest) returns (CreateChatAssistantResponse);
   rpc ListChatAssistants(ListChatAssistantsRequest) returns (ListChatAssistantsResponse);
@@ -531,6 +523,16 @@ service RagServices {
   rpc ListChunks(ListChunksRequest) returns (ListChunksResponse);
   rpc UpdateChunk(UpdateChunkRequest) returns (StatusResponse);
   rpc DeleteChunks(DeleteChunksRequest) returns (StatusResponse);
+  
+  // OpenAI Compatible APIs
+  rpc ChatCompletions(ChatCompletionsRequest) returns (ChatCompletionsResponse);
+  rpc Embeddings(EmbeddingsRequest) returns (EmbeddingsResponse);
+  rpc Models(ModelsRequest) returns (ModelsResponse);
+  
+  // Retrieval/Search
+  rpc SearchDocuments(SearchDocumentsRequest) returns (SearchDocumentsResponse);
+  rpc RetrieveChunks(RetrieveChunksRequest) returns (RetrieveChunksResponse);
+  rpc SimilaritySearch(SimilaritySearchRequest) returns (SimilaritySearchResponse);
   
   // Chat
   rpc Chat(ChatRequest) returns (ChatResponse);
