@@ -612,6 +612,94 @@ class RAGFlowClient:
         except Exception as e:
             return {"status": False, "data": {}, "error": str(e)}
 
+    # OpenAI Compatible API Methods
+    async def chat_completions(self, chat_params: Dict[str, Any]) -> Dict[str, Any]:
+        """OpenAI-compatible chat completions."""
+        try:
+            # Extract RAGFlow-specific parameters
+            dataset_id = chat_params.pop("dataset_id", None)
+
+            # Build OpenAI-compatible request
+            completion_data = {
+                "messages": chat_params.get("messages", []),
+                "model": chat_params.get("model", "ragflow-default"),
+                "temperature": chat_params.get("temperature", 0.7),
+                "max_tokens": chat_params.get("max_tokens", 1000),
+                "top_p": chat_params.get("top_p", 1.0),
+                "frequency_penalty": chat_params.get("frequency_penalty", 0.0),
+                "presence_penalty": chat_params.get("presence_penalty", 0.0),
+                "stream": chat_params.get("stream", False),
+                "user": chat_params.get("user"),
+            }
+
+            # Remove None values
+            completion_data = {
+                k: v for k, v in completion_data.items() if v is not None
+            }
+
+            # Use OpenAI-compatible endpoint or RAG endpoint
+            if dataset_id:
+                # Use RAG-enhanced chat with dataset context
+                endpoint = f"/api/v1/datasets/{dataset_id}/chat/completions"
+            else:
+                # Use standard OpenAI-compatible endpoint
+                endpoint = "/api/v1/chat/completions"
+
+            response = await self.client.post(endpoint, json=completion_data)
+            data = response.json() if response.status_code == 200 else {}
+            return {"status": response.status_code == 200, "data": data}
+        except httpx.ConnectError:
+            return {
+                "status": False,
+                "data": {},
+                "error": "All connection attempts failed",
+            }
+        except Exception as e:
+            return {"status": False, "data": {}, "error": str(e)}
+
+    async def create_embeddings(
+        self, embedding_params: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Generate embeddings for text."""
+        try:
+            # Build embedding request
+            embedding_data = {
+                "input": embedding_params.get("input", []),
+                "model": embedding_params.get("model", "ragflow-embedding"),
+                "encoding_format": embedding_params.get("encoding_format", "float"),
+                "user": embedding_params.get("user"),
+            }
+
+            # Remove None values
+            embedding_data = {k: v for k, v in embedding_data.items() if v is not None}
+
+            response = await self.client.post("/api/v1/embeddings", json=embedding_data)
+            data = response.json() if response.status_code == 200 else {}
+            return {"status": response.status_code == 200, "data": data}
+        except httpx.ConnectError:
+            return {
+                "status": False,
+                "data": {},
+                "error": "All connection attempts failed",
+            }
+        except Exception as e:
+            return {"status": False, "data": {}, "error": str(e)}
+
+    async def list_models(self) -> Dict[str, Any]:
+        """List available models."""
+        try:
+            response = await self.client.get("/api/v1/models")
+            data = response.json() if response.status_code == 200 else {}
+            return {"status": response.status_code == 200, "data": data}
+        except httpx.ConnectError:
+            return {
+                "status": False,
+                "data": {},
+                "error": "All connection attempts failed",
+            }
+        except Exception as e:
+            return {"status": False, "data": {}, "error": str(e)}
+
     # Retrieval/Search Methods
     async def search_documents(
         self,

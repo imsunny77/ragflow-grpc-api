@@ -826,6 +826,234 @@ class RagServicesServicer(ragflow_pb2_grpc.RagServicesServicer):
             logger.error(f"Error deleting chunks: {e}")
             return ragflow_pb2.StatusResponse(status=False, message=str(e))
 
+    # OpenAI Compatible API Methods
+    async def ChatCompletions(
+        self,
+        request: ragflow_pb2.ChatCompletionsRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.ChatCompletionsResponse:
+        """OpenAI-compatible chat completions."""
+        try:
+            # Convert messages to RAGFlow format
+            messages = []
+            for msg in request.messages:
+                messages.append(
+                    {
+                        "role": msg.role,
+                        "content": msg.content,
+                        "name": msg.name if msg.name else None,
+                    }
+                )
+
+            # Build request parameters
+            chat_params = {
+                "messages": messages,
+                "model": request.model or "ragflow-default",
+                "temperature": (
+                    request.temperature if request.HasField("temperature") else 0.7
+                ),
+                "max_tokens": (
+                    request.max_tokens if request.HasField("max_tokens") else 1000
+                ),
+                "top_p": request.top_p if request.HasField("top_p") else 1.0,
+                "frequency_penalty": (
+                    request.frequency_penalty
+                    if request.HasField("frequency_penalty")
+                    else 0.0
+                ),
+                "presence_penalty": (
+                    request.presence_penalty
+                    if request.HasField("presence_penalty")
+                    else 0.0
+                ),
+                "stream": request.stream if request.HasField("stream") else False,
+                "user": request.user if request.user else None,
+            }
+
+            # Use dataset_id if provided for RAG
+            if request.dataset_id:
+                chat_params["dataset_id"] = request.dataset_id
+
+            result = await self.ragflow_client.chat_completions(chat_params)
+
+            choices = []
+            usage = None
+            response_id = ""
+            model_name = ""
+            created_timestamp = 0
+
+            if result["status"] and result.get("data"):
+                response_data = result["data"]
+
+                # Extract response fields
+                response_id = response_data.get(
+                    "id", "chatcmpl-" + str(hash(str(messages)))[:8]
+                )
+                model_name = response_data.get(
+                    "model", request.model or "ragflow-default"
+                )
+                created_timestamp = response_data.get("created", 0)
+
+                # Build choices
+                choices_data = response_data.get("choices", [])
+                for choice_data in choices_data:
+                    message_data = choice_data.get("message", {})
+
+                    choice_message = ragflow_pb2.OpenAIChatMessage(
+                        role=message_data.get("role", "assistant"),
+                        content=message_data.get("content", ""),
+                        name=(
+                            message_data.get("name", "")
+                            if message_data.get("name")
+                            else None
+                        ),
+                    )
+
+                    choice = ragflow_pb2.ChatChoice(
+                        index=choice_data.get("index", 0),
+                        message=choice_message,
+                        finish_reason=choice_data.get("finish_reason", "stop"),
+                    )
+                    choices.append(choice)
+
+                # Build usage info
+                usage_data = response_data.get("usage", {})
+                if usage_data:
+                    usage = ragflow_pb2.ChatUsage(
+                        prompt_tokens=usage_data.get("prompt_tokens", 0),
+                        completion_tokens=usage_data.get("completion_tokens", 0),
+                        total_tokens=usage_data.get("total_tokens", 0),
+                    )
+
+            return ragflow_pb2.ChatCompletionsResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+                id=response_id,
+                object="chat.completion",
+                created=created_timestamp,
+                model=model_name,
+                choices=choices,
+                usage=usage,
+            )
+        except Exception as e:
+            logger.error(f"Error in chat completions: {e}")
+            return ragflow_pb2.ChatCompletionsResponse(
+                status=False, message=str(e), choices=[]
+            )
+
+    async def Embeddings(
+        self,
+        request: ragflow_pb2.EmbeddingsRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.EmbeddingsResponse:
+        """Generate embeddings for text."""
+        try:
+            # Extract input text(s)
+            texts = []
+            if request.HasField("text"):
+                texts = [request.text]
+            elif request.texts:
+                texts = list(request.texts)
+            else:
+                return ragflow_pb2.EmbeddingsResponse(
+                    status=False, message="No input text provided", data=[]
+                )
+
+            # Build embedding request
+            embedding_params = {
+                "input": texts,
+                "model": request.model or "ragflow-embedding",
+                "encoding_format": request.encoding_format or "float",
+                "user": request.user if request.user else None,
+            }
+
+            result = await self.ragflow_client.create_embeddings(embedding_params)
+
+            embedding_data = []
+            model_name = ""
+            usage = None
+
+            if result["status"] and result.get("data"):
+                response_data = result["data"]
+                model_name = response_data.get(
+                    "model", request.model or "ragflow-embedding"
+                )
+
+                # Build embedding data
+                embeddings_list = response_data.get("data", [])
+                for idx, embedding_info in enumerate(embeddings_list):
+                    embedding_vector = embedding_info.get("embedding", [])
+
+                    embedding_item = ragflow_pb2.EmbeddingData(
+                        object="embedding", embedding=embedding_vector, index=idx
+                    )
+                    embedding_data.append(embedding_item)
+
+                # Build usage info
+                usage_data = response_data.get("usage", {})
+                if usage_data:
+                    usage = ragflow_pb2.EmbeddingsUsage(
+                        prompt_tokens=usage_data.get("prompt_tokens", 0),
+                        total_tokens=usage_data.get("total_tokens", 0),
+                    )
+
+            return ragflow_pb2.EmbeddingsResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+                object="list",
+                data=embedding_data,
+                model=model_name,
+                usage=usage,
+            )
+        except Exception as e:
+            logger.error(f"Error generating embeddings: {e}")
+            return ragflow_pb2.EmbeddingsResponse(status=False, message=str(e), data=[])
+
+    async def Models(
+        self,
+        request: ragflow_pb2.ModelsRequest,
+        context: grpc.aio.ServicerContext,
+    ) -> ragflow_pb2.ModelsResponse:
+        """List available models."""
+        try:
+            result = await self.ragflow_client.list_models()
+
+            models_data = []
+            if result["status"] and result.get("data"):
+                models_list = result["data"].get("data", [])
+
+                for model_info in models_list:
+                    model_item = ragflow_pb2.ModelInfo(
+                        id=model_info.get("id", ""),
+                        object="model",
+                        created=model_info.get("created", 0),
+                        owned_by=model_info.get("owned_by", "ragflow"),
+                        permission=model_info.get("permission", []),
+                        root=model_info.get("root", model_info.get("id", "")),
+                        parent=(
+                            model_info.get("parent")
+                            if model_info.get("parent")
+                            else None
+                        ),
+                    )
+                    models_data.append(model_item)
+
+            return ragflow_pb2.ModelsResponse(
+                status=result["status"],
+                message=(
+                    "Success" if result["status"] else result.get("error", "Failed")
+                ),
+                object="list",
+                data=models_data,
+            )
+        except Exception as e:
+            logger.error(f"Error listing models: {e}")
+            return ragflow_pb2.ModelsResponse(status=False, message=str(e), data=[])
+
     # Retrieval/Search Methods
     async def SearchDocuments(
         self,

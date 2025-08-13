@@ -541,6 +541,148 @@ class RagFlowGRPCClient:
         response = await self.stub.DeleteChunks(request)
         return response
 
+    # OpenAI Compatible API methods
+    async def chat_completions(
+        self,
+        messages: List[Dict[str, str]],
+        model: str = "ragflow-default",
+        temperature: float = 0.7,
+        max_tokens: int = 1000,
+        top_p: float = 1.0,
+        frequency_penalty: float = 0.0,
+        presence_penalty: float = 0.0,
+        stream: bool = False,
+        user: Optional[str] = None,
+        dataset_id: Optional[str] = None,
+    ) -> ragflow_pb2.ChatCompletionsResponse:
+        """OpenAI-compatible chat completions."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        # Convert messages to protobuf format
+        openai_messages = []
+        for msg in messages:
+            openai_msg = ragflow_pb2.OpenAIChatMessage(
+                role=msg.get("role", "user"),
+                content=msg.get("content", ""),
+            )
+            if msg.get("name"):
+                openai_msg.name = msg["name"]
+            openai_messages.append(openai_msg)
+
+        request = ragflow_pb2.ChatCompletionsRequest(
+            messages=openai_messages,
+            model=model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=top_p,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty,
+            stream=stream,
+        )
+        if user:
+            request.user = user
+        if dataset_id:
+            request.dataset_id = dataset_id
+
+        response = await self.stub.ChatCompletions(request)
+        return response
+
+    async def create_embeddings(
+        self,
+        input_text: Optional[str] = None,
+        input_texts: Optional[List[str]] = None,
+        model: str = "ragflow-embedding",
+        encoding_format: str = "float",
+        user: Optional[str] = None,
+    ) -> ragflow_pb2.EmbeddingsResponse:
+        """Generate embeddings for text."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        if not input_text and not input_texts:
+            raise ValueError("Either input_text or input_texts must be provided")
+
+        request = ragflow_pb2.EmbeddingsRequest(
+            model=model,
+            encoding_format=encoding_format,
+        )
+
+        if input_text:
+            request.text = input_text
+        elif input_texts:
+            request.texts.extend(input_texts)
+
+        if user:
+            request.user = user
+
+        response = await self.stub.Embeddings(request)
+        return response
+
+    async def list_models(self) -> ragflow_pb2.ModelsResponse:
+        """List available models."""
+        if not self.stub:
+            raise RuntimeError("Client not connected")
+
+        request = ragflow_pb2.ModelsRequest()
+        response = await self.stub.Models(request)
+        return response
+
+    # OpenAI Compatible API methods
+    def chat_completions(
+        self,
+        messages: List[Dict[str, str]],
+        model: str = "ragflow-default",
+        temperature: float = 0.7,
+        max_tokens: int = 1000,
+        top_p: float = 1.0,
+        frequency_penalty: float = 0.0,
+        presence_penalty: float = 0.0,
+        stream: bool = False,
+        user: Optional[str] = None,
+        dataset_id: Optional[str] = None,
+    ) -> ragflow_pb2.ChatCompletionsResponse:
+        """Chat completions (sync)."""
+        return asyncio.run(
+            self._run_async_method(
+                "chat_completions",
+                messages,
+                model,
+                temperature,
+                max_tokens,
+                top_p,
+                frequency_penalty,
+                presence_penalty,
+                stream,
+                user,
+                dataset_id,
+            )
+        )
+
+    def create_embeddings(
+        self,
+        input_text: Optional[str] = None,
+        input_texts: Optional[List[str]] = None,
+        model: str = "ragflow-embedding",
+        encoding_format: str = "float",
+        user: Optional[str] = None,
+    ) -> ragflow_pb2.EmbeddingsResponse:
+        """Create embeddings (sync)."""
+        return asyncio.run(
+            self._run_async_method(
+                "create_embeddings",
+                input_text,
+                input_texts,
+                model,
+                encoding_format,
+                user,
+            )
+        )
+
+    def list_models(self) -> ragflow_pb2.ModelsResponse:
+        """List models (sync)."""
+        return asyncio.run(self._run_async_method("list_models"))
+
     # Retrieval/Search methods
     async def search_documents(
         self,

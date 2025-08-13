@@ -325,6 +325,100 @@ message DeleteChunksRequest {
   repeated string ids = 2; // if empty, deletes all chunks in dataset
 }
 
+// OpenAI Compatible API messages
+message OpenAIChatMessage {
+  string role = 1; // "system", "user", "assistant"
+  string content = 2;
+  optional string name = 3;
+}
+
+message ChatCompletionsRequest {
+  repeated OpenAIChatMessage messages = 1;
+  optional string model = 2; // default: "ragflow-default"
+  optional float temperature = 3; // default: 0.7
+  optional int32 max_tokens = 4; // default: 1000
+  optional float top_p = 5; // default: 1.0
+  optional float frequency_penalty = 6; // default: 0.0
+  optional float presence_penalty = 7; // default: 0.0
+  optional bool stream = 8; // default: false
+  optional string user = 9;
+  optional string dataset_id = 10; // RAGFlow specific: which dataset to use
+}
+
+message ChatChoice {
+  int32 index = 1;
+  OpenAIChatMessage message = 2;
+  string finish_reason = 3; // "stop", "length", "content_filter"
+}
+
+message ChatUsage {
+  int32 prompt_tokens = 1;
+  int32 completion_tokens = 2;
+  int32 total_tokens = 3;
+}
+
+message ChatCompletionsResponse {
+  bool status = 1;
+  string message = 2;
+  optional string id = 3;
+  optional string object = 4; // "chat.completion"
+  optional int64 created = 5; // Unix timestamp
+  optional string model = 6;
+  repeated ChatChoice choices = 7;
+  optional ChatUsage usage = 8;
+}
+
+message EmbeddingsRequest {
+  oneof input {
+    string text = 1;
+    repeated string texts = 2;
+  }
+  optional string model = 3; // default: "ragflow-embedding"
+  optional string encoding_format = 4; // "float", "base64"
+  optional string user = 5;
+}
+
+message EmbeddingData {
+  string object = 1; // "embedding"
+  repeated float embedding = 2;
+  int32 index = 3;
+}
+
+message EmbeddingsUsage {
+  int32 prompt_tokens = 1;
+  int32 total_tokens = 2;
+}
+
+message EmbeddingsResponse {
+  bool status = 1;
+  string message = 2;
+  optional string object = 3; // "list"
+  repeated EmbeddingData data = 4;
+  optional string model = 5;
+  optional EmbeddingsUsage usage = 6;
+}
+
+message ModelsRequest {
+  // Empty - just list all available models
+}
+
+message ModelInfo {
+  string id = 1;
+  string object = 2; // "model"
+  int64 created = 3;
+  string owned_by = 4;
+  repeated string permission = 5;
+  string root = 6;
+  optional string parent = 7;
+}
+
+message ModelsResponse {
+  bool status = 1;
+  string message = 2;
+  optional string object = 3; // "list"
+  repeated ModelInfo data = 4;
+}
+
 // Retrieval/Search messages
 message SearchDocumentsRequest {
   string dataset_id = 1;
@@ -409,6 +503,11 @@ service RagServices {
   rpc DownloadDocument(DownloadDocumentRequest) returns (DownloadDocumentResponse);
   rpc DeleteDocuments(DeleteDocumentsRequest) returns (StatusResponse);
   rpc ParseDocuments(ParseDocumentsRequest) returns (StatusResponse);
+  
+  // OpenAI Compatible APIs
+  rpc ChatCompletions(ChatCompletionsRequest) returns (ChatCompletionsResponse);
+  rpc Embeddings(EmbeddingsRequest) returns (EmbeddingsResponse);
+  rpc Models(ModelsRequest) returns (ModelsResponse);
   
   // Retrieval/Search
   rpc SearchDocuments(SearchDocumentsRequest) returns (SearchDocumentsResponse);
