@@ -60,7 +60,7 @@ message UpdateDatasetRequest {
 }
 
 message DeleteDatasetsRequest {
-  repeated string ids = 1; // if empty, deletes all datasets
+  repeated string ids = 1;
 }
 
 // Document Management messages
@@ -118,7 +118,7 @@ message DownloadDocumentResponse {
 
 message DeleteDocumentsRequest {
   string dataset_id = 1;
-  repeated string ids = 2; // if empty, deletes all documents in dataset
+  repeated string ids = 2;
 }
 
 message ParseDocumentsRequest {
@@ -207,12 +207,12 @@ message UpdateChatAssistantRequest {
 }
 
 message DeleteChatAssistantsRequest {
-  repeated string ids = 1; // if empty, deletes all chat assistants
+  repeated string ids = 1;
 }
 
 // Session Management messages
 message ChatMessage {
-  string role = 1; // "user" or "assistant"
+  string role = 1;
   string content = 2;
 }
 
@@ -264,7 +264,7 @@ message UpdateSessionRequest {
 
 message DeleteSessionsRequest {
   string chat_id = 1;
-  repeated string ids = 2; // if empty, deletes all sessions for the chat assistant
+  repeated string ids = 2;
 }
 
 // Chunk Management messages
@@ -273,7 +273,7 @@ message Chunk {
   string document_id = 2;
   string dataset_id = 3;
   string content = 4;
-  string metadata = 5; // JSON string
+  string metadata = 5;
   int32 position = 6;
   float similarity_score = 7;
   string create_date = 8;
@@ -284,7 +284,7 @@ message CreateChunkRequest {
   string dataset_id = 1;
   string document_id = 2;
   string content = 3;
-  string metadata = 4; // JSON string
+  string metadata = 4;
   int32 position = 5;
 }
 
@@ -316,39 +316,39 @@ message UpdateChunkRequest {
   string dataset_id = 1;
   string chunk_id = 2;
   string content = 3;
-  string metadata = 4; // JSON string
+  string metadata = 4;
   int32 position = 5;
 }
 
 message DeleteChunksRequest {
   string dataset_id = 1;
-  repeated string ids = 2; // if empty, deletes all chunks in dataset
+  repeated string ids = 2;
 }
 
 // OpenAI Compatible API messages
 message OpenAIChatMessage {
-  string role = 1; // "system", "user", "assistant"
+  string role = 1;
   string content = 2;
   string name = 3;
 }
 
 message ChatCompletionsRequest {
   repeated OpenAIChatMessage messages = 1;
-  string model = 2; // default: "ragflow-default"
-  float temperature = 3; // default: 0.7
-  int32 max_tokens = 4; // default: 1000
-  float top_p = 5; // default: 1.0
-  float frequency_penalty = 6; // default: 0.0
-  float presence_penalty = 7; // default: 0.0
-  bool stream = 8; // default: false
+  string model = 2;
+  float temperature = 3;
+  int32 max_tokens = 4;
+  float top_p = 5;
+  float frequency_penalty = 6;
+  float presence_penalty = 7;
+  bool stream = 8;
   string user = 9;
-  string dataset_id = 10; // RAGFlow specific: which dataset to use
+  string dataset_id = 10;
 }
 
 message ChatChoice {
   int32 index = 1;
   OpenAIChatMessage message = 2;
-  string finish_reason = 3; // "stop", "length", "content_filter"
+  string finish_reason = 3;
 }
 
 message ChatUsage {
@@ -361,25 +361,23 @@ message ChatCompletionsResponse {
   bool status = 1;
   string message = 2;
   string id = 3;
-  string object = 4; // "chat.completion"
-  int64 created = 5; // Unix timestamp
+  string object = 4;
+  int64 created = 5;
   string model = 6;
   repeated ChatChoice choices = 7;
   ChatUsage usage = 8;
 }
 
 message EmbeddingsRequest {
-  oneof input {
-    string text = 1;
-    repeated string texts = 2;
-  }
-  string model = 3; // default: "ragflow-embedding"
-  string encoding_format = 4; // "float", "base64"
+  string text = 1;
+  repeated string texts = 2;
+  string model = 3;
+  string encoding_format = 4;
   string user = 5;
 }
 
 message EmbeddingData {
-  string object = 1; // "embedding"
+  string object = 1;
   repeated float embedding = 2;
   int32 index = 3;
 }
@@ -392,19 +390,18 @@ message EmbeddingsUsage {
 message EmbeddingsResponse {
   bool status = 1;
   string message = 2;
-  string object = 3; // "list"
+  string object = 3;
   repeated EmbeddingData data = 4;
   string model = 5;
   EmbeddingsUsage usage = 6;
 }
 
 message ModelsRequest {
-  // Empty - just list all available models
 }
 
 message ModelInfo {
   string id = 1;
-  string object = 2; // "model"
+  string object = 2;
   int64 created = 3;
   string owned_by = 4;
   repeated string permission = 5;
@@ -415,7 +412,7 @@ message ModelInfo {
 message ModelsResponse {
   bool status = 1;
   string message = 2;
-  string object = 3; // "list"
+  string object = 3;
   repeated ModelInfo data = 4;
 }
 
@@ -423,21 +420,21 @@ message ModelsResponse {
 message SearchDocumentsRequest {
   string dataset_id = 1;
   string query = 2;
-  int32 top_k = 3; // default: 10
-  float similarity_threshold = 4; // default: 0.7
-  string filter = 5; // JSON filter criteria
-  bool include_content = 6; // default: false
+  int32 top_k = 3;
+  float similarity_threshold = 4;
+  string filter = 5;
+  bool include_content = 6;
 }
 
 message SearchResult {
   string id = 1;
-  string type = 2; // "document" or "chunk"
+  string type = 2;
   string title = 3;
   string content = 4;
   float similarity_score = 5;
-  string metadata = 6; // JSON string
+  string metadata = 6;
   string dataset_id = 7;
-  string document_id = 8; // for chunks
+  string document_id = 8;
 }
 
 message SearchDocumentsResponse {
@@ -450,26 +447,26 @@ message SearchDocumentsResponse {
 message RetrieveChunksRequest {
   string dataset_id = 1;
   string query = 2;
-  int32 top_k = 3; // default: 5
-  float similarity_threshold = 4; // default: 0.2
-  string document_id = 5; // filter by specific document
-  bool rerank = 6; // default: true
+  int32 top_k = 3;
+  float similarity_threshold = 4;
+  string document_id = 5;
+  bool rerank = 6;
 }
 
 message RetrieveChunksResponse {
   bool status = 1;
   string message = 2;
   repeated SearchResult chunks = 3;
-  string query_embedding = 4; // base64 encoded vector
+  string query_embedding = 4;
 }
 
 message SimilaritySearchRequest {
   string dataset_id = 1;
-  string text = 2; // search by text
-  string embedding = 3; // or by embedding vector (base64)
-  int32 top_k = 4; // default: 10
-  float similarity_threshold = 5; // default: 0.5
-  string content_type = 6; // "document", "chunk", or "both"
+  string text = 2;
+  string embedding = 3;
+  int32 top_k = 4;
+  float similarity_threshold = 5;
+  string content_type = 6;
 }
 
 message SimilaritySearchResponse {
